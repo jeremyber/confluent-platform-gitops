@@ -155,13 +155,41 @@ create_from_templates() {
     replace_placeholders "$target_dir/bootstrap.yaml" "$cluster_name" "$domain" "$repo_url"
     success "Created $target_dir/bootstrap.yaml"
 
+    # Copy all infrastructure application templates
+    local infra_count=0
+    for template in "$template_dir/infrastructure"/*.yaml.template; do
+        if [ -f "$template" ]; then
+            local basename=$(basename "$template" .template)
+            cp "$template" "$target_dir/infrastructure/$basename"
+            # Only replace placeholders in files that need it (Application manifests)
+            if grep -q '\$CLUSTER_NAME\|\$DOMAIN\|\$REPO_URL' "$target_dir/infrastructure/$basename"; then
+                replace_placeholders "$target_dir/infrastructure/$basename" "$cluster_name" "$domain" "$repo_url"
+            fi
+            infra_count=$((infra_count + 1))
+        fi
+    done
+    success "Created $infra_count infrastructure applications"
+
     # Copy infrastructure kustomization template
     cp "$template_dir/infrastructure/kustomization.yaml.template" "$target_dir/infrastructure/kustomization.yaml"
-    success "Created $target_dir/infrastructure/kustomization.yaml"
+
+    # Copy all workload application templates
+    local workload_count=0
+    for template in "$template_dir/workloads"/*.yaml.template; do
+        if [ -f "$template" ]; then
+            local basename=$(basename "$template" .template)
+            cp "$template" "$target_dir/workloads/$basename"
+            # Only replace placeholders in files that need it
+            if grep -q '\$CLUSTER_NAME\|\$DOMAIN\|\$REPO_URL' "$target_dir/workloads/$basename"; then
+                replace_placeholders "$target_dir/workloads/$basename" "$cluster_name" "$domain" "$repo_url"
+            fi
+            workload_count=$((workload_count + 1))
+        fi
+    done
+    success "Created $workload_count workload applications"
 
     # Copy workloads kustomization template
     cp "$template_dir/workloads/kustomization.yaml.template" "$target_dir/workloads/kustomization.yaml"
-    success "Created $target_dir/workloads/kustomization.yaml"
 
     # Copy README template
     cp "$template_dir/README.md.template" "$target_dir/README.md"
@@ -275,12 +303,22 @@ main() {
     echo ""
     success "Cluster $CLUSTER_NAME created successfully!"
     echo ""
+    echo "Generated cluster with full application stack:"
+    echo "  - Bootstrap configuration"
+    echo "  - 12 infrastructure applications (ingress, monitoring, secrets, TLS)"
+    echo "  - 8 workload applications (Confluent Platform, Flink, observability)"
+    echo ""
     echo "Next steps:"
     echo "  1. Review generated files in clusters/$CLUSTER_NAME/"
-    echo "  2. Add infrastructure applications to clusters/$CLUSTER_NAME/infrastructure/kustomization.yaml"
-    echo "  3. Add workload applications to clusters/$CLUSTER_NAME/workloads/kustomization.yaml"
+    echo "  2. Remove any applications you don't need from:"
+    echo "     - clusters/$CLUSTER_NAME/infrastructure/kustomization.yaml"
+    echo "     - clusters/$CLUSTER_NAME/workloads/kustomization.yaml"
+    echo "  3. Review cluster-specific overlays (see README.md for application list)"
     echo "  4. Commit changes: git add clusters/$CLUSTER_NAME/ && git commit -m 'Add $CLUSTER_NAME cluster'"
     echo "  5. Deploy bootstrap: kubectl apply -f clusters/$CLUSTER_NAME/bootstrap.yaml"
+    echo ""
+    echo "Note: All applications from flink-demo cluster are included by default."
+    echo "      It's easier to remove what you don't need than to add from scratch."
     echo ""
     echo "For detailed guidance, see:"
     echo "  - docs/cluster-onboarding.md"

@@ -34,17 +34,38 @@ kubectl get applications -n argocd -w
 
 ## Applications
 
-### Infrastructure
+This cluster includes all infrastructure and workload applications from the reference `flink-demo` cluster.
+Remove any applications you don't need by deleting the files and removing them from the kustomization.yaml files.
 
-Infrastructure applications are defined in `infrastructure/kustomization.yaml`.
+### Infrastructure Applications
 
-TODO: Add infrastructure applications
+Infrastructure applications are defined in `infrastructure/kustomization.yaml`:
 
-### Workloads
+- **argocd-config** (wave 85) - ArgoCD ConfigMap patches for custom health checks
+- **argocd-ingress** (wave 80) - Traefik IngressRoute for ArgoCD UI
+- **cert-manager** (wave 20) - TLS certificate management
+- **cert-manager-resources** (wave 75) - ClusterIssuer and certificates
+- **kube-prometheus-stack-crds** (wave 2) - Prometheus Operator CRDs
+- **kube-prometheus-stack** (wave 20) - Monitoring stack (Prometheus, Grafana, Alertmanager)
+- **metrics-server** (wave 5) - Kubernetes Metrics Server
+- **traefik** (wave 10) - Ingress controller
+- **trust-manager** (wave 30) - CA certificate distribution
+- **vault** (wave 40) - HashiCorp Vault (dev mode)
+- **vault-ingress** (wave 45) - Traefik IngressRoute for Vault UI
+- **vault-config** (wave 50) - Vault transit engine configuration
 
-Workload applications are defined in `workloads/kustomization.yaml`.
+### Workload Applications
 
-TODO: Add workload applications
+Workload applications are defined in `workloads/kustomization.yaml`:
+
+- **namespaces** (wave 100) - Namespace definitions (kafka, flink, operator)
+- **cfk-operator** (wave 105) - Confluent for Kubernetes operator
+- **confluent-resources** (wave 110) - Confluent Platform (KRaft, Kafka, Schema Registry, etc.)
+- **controlcenter-ingress** (wave 115) - Traefik IngressRoute for Control Center UI
+- **flink-kubernetes-operator** (wave 116) - Flink Kubernetes Operator
+- **observability-resources** (wave 117) - PodMonitors and Grafana dashboards
+- **cmf-operator** (wave 118) - Confluent Manager for Apache Flink
+- **flink-resources** (wave 120) - Flink integration resources
 
 ## Access
 
