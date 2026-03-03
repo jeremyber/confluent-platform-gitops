@@ -380,19 +380,34 @@ validate_common_issues() {
         fi
     done <<< "$app_files"
 
-    # Check 2: Repository URLs should be consistent
+    # Check 2: Repository URLs should be consistent (normalize .git suffix before comparing)
     local repo_urls
     repo_urls=$(find "$cluster_dir" -name "*.yaml" -type f -exec yq eval '.spec.sources[].repoURL' {} \; 2>/dev/null | grep "github.com" | sort -u)
 
-    local github_url_count
-    github_url_count=$(echo "$repo_urls" | grep -c "github.com" || true)
+    # Normalize URLs by removing .git suffix for comparison
+    local normalized_urls
+    normalized_urls=$(echo "$repo_urls" | sed 's/\.git$//' | sort -u)
 
-    if [ "$github_url_count" -gt 1 ]; then
+    local unique_repo_count
+    unique_repo_count=$(echo "$normalized_urls" | grep -c "github.com" || true)
+
+    if [ "$unique_repo_count" -gt 1 ]; then
         warning "Multiple GitHub repository URLs found (may indicate inconsistent fork URLs)"
         if [ "$VERBOSE" = true ]; then
+            echo "  Normalized URLs (after removing .git suffix):"
+            echo "$normalized_urls" | sed 's/^/    /'
+            echo "  Original URLs:"
             echo "$repo_urls" | sed 's/^/    /'
         fi
         issues=$((issues + 1))
+    fi
+
+    # Check for format inconsistency (.git suffix mixed usage)
+    local original_count
+    original_count=$(echo "$repo_urls" | grep -c "github.com" || true)
+    if [ "$original_count" -ne "$unique_repo_count" ] && [ "$unique_repo_count" -eq 1 ]; then
+        debug "Repository URL format inconsistency detected (mixed .git suffix usage)"
+        debug "All URLs point to same repository but use different formats"
     fi
 
     if [ $issues -eq 0 ]; then
