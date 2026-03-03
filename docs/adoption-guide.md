@@ -298,29 +298,7 @@ The following automation scripts would streamline common adoption tasks. These a
 
 ### High Priority Scripts
 
-<<<<<<< HEAD
 #### 1. `scripts/validate-cluster.sh` - Comprehensive Validation Suite
-=======
-#### 1. `scripts/update-repo-urls.sh` - Replace Repository URLs for Forks
-**Problem:** After forking, all ArgoCD Application manifests reference the upstream repository URL
-
-**Solution:** Automated find-and-replace across all cluster manifests
-
-**Usage:**
-```bash
-./scripts/update-repo-urls.sh https://github.com/myorg/confluent-platform-gitops
-```
-
-**What it would do:**
-- Find all `repoURL` entries in `clusters/` manifests
-- Replace upstream URL with provided fork URL
-- Validate YAML syntax after replacement
-- Show diff and require confirmation before committing
-
-**Tracking:** [GitHub Issue #44](https://github.com/osowski/confluent-platform-gitops/issues/44)
-
-#### 2. `scripts/validate-cluster.sh` - Comprehensive Validation Suite
->>>>>>> origin/main
 **Problem:** Pre-deployment validation requires manual checks across multiple tools
 
 **Solution:** Automated validation of manifests, values, and configuration
@@ -341,11 +319,7 @@ The following automation scripts would streamline common adoption tasks. These a
 
 **Tracking:** [GitHub Issue #45](https://github.com/osowski/confluent-platform-gitops/issues/45)
 
-<<<<<<< HEAD
 #### 2. `scripts/new-application.sh` - Scaffold Application Structure
-=======
-#### 3. `scripts/new-application.sh` - Scaffold Application Structure
->>>>>>> origin/main
 **Problem:** Creating base + overlay structure for new applications is repetitive
 
 **Solution:** Generate application scaffolding with best practices
