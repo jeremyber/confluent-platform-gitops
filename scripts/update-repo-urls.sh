@@ -51,6 +51,9 @@ Arguments:
 Options:
   --dry-run     Preview changes without modifying files
 
+Requirements:
+  - yq (install with: brew install yq)
+
 Examples:
   # Update URLs to your fork
   $0 https://github.com/myorg/confluent-platform-gitops.git
@@ -58,7 +61,9 @@ Examples:
   # Preview changes without applying
   $0 https://github.com/myorg/confluent-platform-gitops.git --dry-run
 
-Note: This script only replaces the upstream repository URL:
+Note: This script uses yq for YAML-aware replacement, ensuring only
+repository URL fields are updated (not comments or documentation).
+Only the upstream repository URL is replaced:
   $UPSTREAM_URL
 
 External Helm repository URLs (e.g., packages.confluent.io) are not modified.
@@ -131,7 +136,7 @@ preview_changes() {
     done <<< "$files"
 }
 
-# Update URLs in files
+# Update URLs in files using yq for YAML-aware replacement
 update_files() {
     local old_url="$1"
     local new_url="$2"
@@ -149,12 +154,25 @@ update_files() {
                 # Create backup
                 cp "$file" "$file.bak"
 
-                # Replace URL (using different delimiter to avoid escaping issues)
-                sed -i '' "s|${old_url}|${new_url}|g" "$file"
+                # Use yq to update URLs based on file type
+                if [[ "$file" == "bootstrap/values.yaml" ]]; then
+                    # Update bootstrap values
+                    yq eval ".git.repoUrl = \"${new_url}\"" -i "$file"
+                else
+                    # Update Application manifests - only repoURL fields matching old_url
+                    yq eval "(.spec.sources[] | select(.repoURL == \"${old_url}\").repoURL) = \"${new_url}\"" -i "$file"
+                fi
 
-                # Verify the file is still valid YAML
-                if ! python3 -c "import yaml; yaml.safe_load(open('$file'))" 2>/dev/null; then
-                    error "YAML validation failed for $file - restoring backup"
+                # Check if yq succeeded (it validates YAML automatically)
+                if [ $? -ne 0 ]; then
+                    error "YAML update failed for $file - restoring backup"
+                    mv "$file.bak" "$file"
+                    return 1
+                fi
+
+                # Verify the replacement worked
+                if grep -qF "$old_url" "$file" 2>/dev/null; then
+                    error "Old URL still present in $file after update - restoring backup"
                     mv "$file.bak" "$file"
                     return 1
                 fi
@@ -196,6 +214,13 @@ main() {
     # Check if running from repository root
     if [ ! -e ".git" ] || [ ! -f "bootstrap/Chart.yaml" ]; then
         error "Must run from repository root"
+        exit 1
+    fi
+
+    # Check for required tools
+    if ! command -v yq &> /dev/null; then
+        error "yq is required but not installed"
+        echo "Install with: brew install yq" >&2
         exit 1
     fi
 
