@@ -60,10 +60,10 @@ spec:
           confluent flink catalog create /config/catalog/catalog.json --url ${CMF_URL} || echo "Catalog may already exist"
 
           echo "Creating Flink database..."
-          confluent flink database create /config/database/database.json --catalog kafka-cat --url ${CMF_URL} || echo "Database may already exist"
+          curl --silent -H "Content-Type: application/json" -X POST  "${CMF_URL}/cmf/api/v1/catalogs/kafka/kafka-cat/databases" -d @/config/database/database.json | jq -r .
 
           echo "Listing catalogs..."
-          confluent flink catalog list --url ${CMF_URL}
+          curl --silent  "${CMF_URL}/cmf/api/v1/catalogs/kafka/kafka-cat/databases" | jq -r .
 
           echo "Catalog and database initialization complete!"
       volumes:
