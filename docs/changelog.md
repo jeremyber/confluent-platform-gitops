@@ -29,38 +29,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Includes README with endpoints and getting started instructions
 - **flink-demo cluster README** ([#57](https://github.com/osowski/confluent-platform-gitops/issues/57))
   - Comprehensive cluster documentation at `clusters/flink-demo/README.md`
-  - Integrates prerequisites, DNS configuration, deployment steps, and troubleshooting
-  - Documents all endpoints including new CMF and S3proxy Ingress FQDNs
-  - Updated `/etc/hosts` entries in getting-started guide to include `cmf.flink-demo.confluentdemo.local` and `s3proxy.flink-demo.confluentdemo.local`
 - **Automation script: validate-cluster.sh** ([#45](https://github.com/osowski/confluent-platform-gitops/issues/45))
   - Comprehensive validation suite for cluster configuration: `./scripts/validate-cluster.sh <cluster-name> [--verbose]`
-  - Validates YAML syntax, Kustomize builds, Helm templates, sync waves, AppProjects, and common misconfigurations
 - **Automation script: update-repo-urls.sh** ([#44](https://github.com/osowski/confluent-platform-gitops/issues/44))
   - Update all repository URLs after forking with single command: `./scripts/update-repo-urls.sh <new-url> [--dry-run]`
-  - Uses yq for YAML-aware replacement, validates URLs, updates manifests, verifies changes; supports dry-run preview mode
 - **Automation script: new-cluster.sh** ([#43](https://github.com/osowski/confluent-platform-gitops/issues/43))
   - Scaffold new cluster directory structure with single command: `./scripts/new-cluster.sh <cluster-name> <domain>`
-  - Generates complete application stack (20 apps), bootstrap.yaml, and README with overlay creation guide; supports interactive mode
 - **Adoption guide for repository usage and fork customization** ([#15](https://github.com/osowski/confluent-platform-gitops/issues/15))
   - New `docs/adoption-guide.md` provides strategic routing hub for users adopting this repository
   - Five adoption paths: local development, deploy to cluster, customize infrastructure, add/modify workloads, fork customization
   - Cross-references existing detailed guides without content duplication
 - **PodMonitor for CFK components in confluent-resources** ([#37](https://github.com/osowski/confluent-platform-gitops/issues/37))
   - Added `PodMonitor` resource to enable Prometheus metrics scraping from all Confluent for Kubernetes (CFK) managed components
-  - Single `PodMonitor` covers Kafka, KRaft Controller, Schema Registry, Connect, and Control Center via `confluent-platform` label selector
-  - Configured `jobLabel: platform.confluent.io/type` to set per-component Prometheus job labels (e.g., `job="kafka"`, `job="schemaregistry"`), aligning with [confluentinc/jmx-monitoring-stacks](https://github.com/confluentinc/jmx-monitoring-stacks) Grafana dashboard conventions
-  - Metrics exposed on port 7778 via Prometheus JMX Exporter
+  - Metrics exposed by default on port 7778 via Prometheus JMX Exporter
   - Updated `docs/confluent-platform.md` with PodMonitor configuration details, verification steps, and Grafana dashboard integration guidance
 
 ### Fixed
-- **Missing Schema resource permission in workloads AppProject**
-  - Added `platform.confluent.io/Schema` to workloads AppProject's namespaceResourceWhitelist
-  - Fixes "resource platform.confluent.io:Schema is not permitted in project workloads" error
-  - Required for cp-flink-sql-sandbox application to deploy Schema resources
-- **s3proxy sync-wave mismatch causing deployment blocking** ([#59](https://github.com/osowski/confluent-platform-gitops/issues/59))
-  - Updated s3proxy Deployment and Service sync-wave from "20" to "15" to match PVC sync-wave
-  - Prevents Deployment from blocking indefinitely when trying to mount PVC before it's fully bound
-  - All core s3proxy resources (PVC, Deployment, Service) now deployed in same sync wave 15
 - **Flink ServiceMonitor job label alignment with jmx-monitoring-stacks dashboards** ([#36](https://github.com/osowski/confluent-platform-gitops/issues/36))
   - Removed `jobLabel: type` from the Flink `ServiceMonitor`; Prometheus was assigning `job="flink-native-kubernetes"` which did not match the `job="flink"` selector hardcoded in upstream Flink Grafana dashboards
   - Added `relabelings` entry to the metrics endpoint to hardcode `job="flink"`, aligning with the [confluentinc/jmx-monitoring-stacks](https://github.com/confluentinc/jmx-monitoring-stacks) dashboard convention
