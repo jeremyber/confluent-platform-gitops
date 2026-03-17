@@ -8,6 +8,8 @@ spec:
     - secret:
         name: cmf-root-ca
         key: ca.crt
+        # The CA secret is in the cert-manager namespace (created by CA Certificate)
+        namespace: cert-manager
   target:
     configMap:
       key: ca.crt

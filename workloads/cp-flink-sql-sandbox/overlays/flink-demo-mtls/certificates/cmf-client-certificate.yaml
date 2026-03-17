@@ -15,5 +15,5 @@ spec:
     - client auth
   issuerRef:
     name: cmf-ca-issuer
-    kind: Issuer
+    kind: ClusterIssuer
     group: cert-manager.io

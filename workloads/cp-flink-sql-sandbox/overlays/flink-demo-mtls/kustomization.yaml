@@ -8,8 +8,7 @@ resources:
 
   # Certificate infrastructure (overlay-only)
   - certificates/ca-certificate.yaml
-  - certificates/ca-issuer.yaml
-  - certificates/ca-issuer-flink.yaml
+  - certificates/ca-cluster-issuer.yaml
   - certificates/cmf-server-certificate.yaml
   - certificates/cmf-client-certificate.yaml
   - certificates/trust-bundle.yaml
