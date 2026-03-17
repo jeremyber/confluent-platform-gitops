@@ -1,9 +1,9 @@
-# Confluent Manager for Apache Flink - flink-demo Cluster Overlay
-# Cluster-specific configuration overrides
+# Confluent Manager for Apache Flink - flink-demo-mtls Cluster Overlay
+# mTLS-specific configuration overrides
 
-# Additional pod annotations for flink-demo cluster identification
+# Additional pod annotations for flink-demo-mtls cluster identification
 podAnnotations:
-  cluster: flink-demo
+  cluster: flink-demo-mtls
 
 # Enable mTLS authentication
 cmf:

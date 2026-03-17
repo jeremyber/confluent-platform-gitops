@@ -5,9 +5,16 @@ kind: Kustomization
 resources:
   - ../../base
 
+# Strategic merge patch to enable mTLS
+patches:
+  - path: cmfrestclass-patch.yaml
+    target:
+      kind: CMFRestClass
+      name: cmf-rest-class
+
 # Cluster-specific labels
 labels:
 - includeSelectors: false
   includeTemplates: true
   pairs:
-    cluster: flink-demo
+    cluster: flink-demo-mtls
