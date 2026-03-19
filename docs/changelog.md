@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.2] - 2026-03-19
+
 ## [0.5.1] - 2026-03-18
 
 ## [0.5.0] - 2026-03-06
@@ -341,7 +343,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Workloads project: Namespace-scoped resources only
 - Secrets excluded from repository (external management)
 
-[Unreleased]: https://github.com/osowski/confluent-platform-gitops/compare/v0.5.1...HEAD
+[Unreleased]: https://github.com/osowski/confluent-platform-gitops/compare/v0.5.2...HEAD
+[0.5.2]: https://github.com/osowski/confluent-platform-gitops/compare/v0.5.1...v0.5.2
 [0.5.1]: https://github.com/osowski/confluent-platform-gitops/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/osowski/confluent-platform-gitops/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/osowski/confluent-platform-gitops/compare/v0.3.0...v0.4.0
