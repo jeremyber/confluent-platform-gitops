@@ -43,27 +43,23 @@ This cluster includes:
 
 ### ConfluentRoleBindings
 
-ConfluentRoleBindings are **not Kubernetes resources** - they are created via MDS API using the Confluent CLI:
+ConfluentRoleBindings are **Kubernetes CRDs** provided by CFK (Confluent for Kubernetes).
 
-```bash
-# Example: Grant DeveloperManage role to shapes group
-confluent iam rbac role-binding create \
-  --principal Group:shapes \
-  --role DeveloperManage \
-  --cmf CMF-id \
-  --flink-environment shapes-env \
-  --resource FlinkApplication:"*"
+The following role bindings are configured in `workloads/confluent-resources/overlays/flink-demo-rbac/confluentrolebindings.yaml`:
 
-# Example: Grant DeveloperManage role to colors group
-confluent iam rbac role-binding create \
-  --principal Group:colors \
-  --role DeveloperManage \
-  --cmf CMF-id \
-  --flink-environment colors-env \
-  --resource FlinkApplication:"*"
-```
+**Admin user:**
+- SystemAdmin role on CMF cluster (full access, can delete environments)
+- ClusterAdmin role on CMF cluster (manage environments/applications)
 
-These role bindings are stored in MDS and evaluated when users make requests to CMF.
+**Shapes group:**
+- DeveloperManage role on shapes-env FlinkEnvironment (create/update/delete Flink apps)
+- DeveloperRead role on shapes-env FlinkEnvironment resource (view environment)
+
+**Colors group:**
+- DeveloperManage role on colors-env FlinkEnvironment (create/update/delete Flink apps)
+- DeveloperRead role on colors-env FlinkEnvironment resource (view environment)
+
+These role bindings are reconciled by CFK and synced to MDS for enforcement.
 
 For Kubernetes-level RBAC (namespace isolation, pod permissions), see `workloads/flink-rbac/`.
 

@@ -11,6 +11,7 @@ bases:
 resources:
   - mds-token-keypair-secret.yaml
   - oauth-client-secrets.yaml
+  - confluentrolebindings.yaml
 
 # Cluster-specific patches
 patches:

@@ -93,76 +93,31 @@ curl http://localhost:8090/security/1.0/activePrincipals
 # Should return: {"activeUsers":[]}
 ```
 
-### 5. Configure ConfluentRoleBindings
+### 5. Verify ConfluentRoleBindings
 
-ConfluentRoleBindings are created via the Confluent CLI, not Kubernetes resources.
+ConfluentRoleBindings are **Kubernetes CRDs** created by the `confluentrolebindings.yaml` file.
 
-**Install Confluent CLI:**
+**Verify they are created:**
 ```bash
-# See: https://docs.confluent.io/confluent-cli/current/install.html
-brew install confluentinc/tap/cli
+# List all ConfluentRoleBindings
+kubectl get confluentrolebinding -n kafka
+
+# Expected output:
+# admin-clusteradmin       SystemAdmin on CMF
+# admin-systemadmin        ClusterAdmin on CMF
+# colors-developermanage   DeveloperManage on colors-env
+# colors-developerread     DeveloperRead on colors-env
+# shapes-developermanage   DeveloperManage on shapes-env
+# shapes-developerread     DeveloperRead on shapes-env
 ```
 
-**Login to MDS:**
+**View role binding details:**
 ```bash
-# Set MDS endpoint
-export MDS_URL=http://localhost:8090
-
-# Login as admin user
-confluent login --url $MDS_URL \
-  --ca-cert-path /path/to/ca.crt  # if using HTTPS
+# View shapes group DeveloperManage binding
+kubectl get confluentrolebinding shapes-developermanage -n kafka -o yaml
 ```
 
-**Create role bindings for admin:**
-```bash
-# Grant SystemAdmin on CMF cluster
-confluent iam rbac role-binding create \
-  --principal User:admin@osow.ski \
-  --role SystemAdmin \
-  --cmf CMF-id
-
-# Grant ClusterAdmin on CMF cluster
-confluent iam rbac role-binding create \
-  --principal User:admin@osow.ski \
-  --role ClusterAdmin \
-  --cmf CMF-id
-```
-
-**Create role bindings for shapes group:**
-```bash
-# Grant DeveloperManage on shapes environment
-confluent iam rbac role-binding create \
-  --principal Group:shapes \
-  --role DeveloperManage \
-  --cmf CMF-id \
-  --flink-environment shapes-env \
-  --resource FlinkApplication:"*"
-
-# Grant DeveloperRead on shapes environment
-confluent iam rbac role-binding create \
-  --principal Group:shapes \
-  --role DeveloperRead \
-  --cmf CMF-id \
-  --resource FlinkEnvironment:shapes-env
-```
-
-**Create role bindings for colors group:**
-```bash
-# Grant DeveloperManage on colors environment
-confluent iam rbac role-binding create \
-  --principal Group:colors \
-  --role DeveloperManage \
-  --cmf CMF-id \
-  --flink-environment colors-env \
-  --resource FlinkApplication:"*"
-
-# Grant DeveloperRead on colors environment
-confluent iam rbac role-binding create \
-  --principal Group:colors \
-  --role DeveloperRead \
-  --cmf CMF-id \
-  --resource FlinkEnvironment:colors-env
-```
+These role bindings are automatically reconciled by CFK and synced to MDS.
 
 ## Testing RBAC
 
