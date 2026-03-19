@@ -25,20 +25,26 @@ This token allows the CFK operator to manage FlinkEnvironment and FlinkApplicati
 1. **Kubernetes RBAC** (Issue #85): Controls which namespaces users can deploy CRDs to
 2. **CMF RBAC via MDS** (Issue #87): Controls which Flink resources users can access via CMF UI/API
 
-### OAuth Token Secret
+### OAuth Client Credentials Secret
 
-The `cfk-cmf-oauth-token` secret in the `flink` namespace contains:
+The `cfk-cmf-oauth-client` secret in the `flink` namespace contains OAuth client credentials in plain text format:
 
 ```yaml
 stringData:
-  bearer-token: "<token>"  # OAuth bearer token for operator
-  client-id: "cmf"         # Alternative: client credentials
-  client-secret: "cmf-secret"
+  oauth.txt: |
+    clientId=cmf
+    clientSecret=cmf-secret
 ```
 
-**Note:** The bearer token is a placeholder. In production, either:
-1. Obtain a token manually and update the secret
-2. Use client credentials if CFK supports automatic token refresh
+**How it works:**
+1. CFK reads client credentials from the secret
+2. CFK calls Keycloak token endpoint to obtain access tokens
+3. CFK automatically refreshes tokens as needed
+4. No manual token management required
+
+**Token endpoint:** `http://keycloak.keycloak.svc.cluster.local:8080/realms/confluent/protocol/openid-connect/token`
+
+This uses the **OAuth 2.0 client credentials flow**, where CFK exchanges the client ID/secret for bearer tokens automatically
 
 ## Three-Layer Authorization Model
 
@@ -56,8 +62,9 @@ This cluster implements a **three-layer authorization model** for complete acces
 ### Layer 2: CFK Operator Authentication
 **Controls:** CFK operator to CMF REST API communication
 
-- CMFRestClass configured with OAuth authentication
-- CFK uses `cfk-cmf-oauth-token` secret to authenticate as operator
+- CMFRestClass configured with OAuth client credentials flow
+- CFK uses `cfk-cmf-oauth-client` secret containing client ID/secret
+- CFK automatically obtains and refreshes OAuth tokens from Keycloak
 - Operator can create/manage Flink resources in CMF on behalf of users
 
 **Resources:** `cmfrestclass-oauth-patch.yaml`, `cfk-oauth-secret.yaml`
