@@ -47,6 +47,22 @@ spec:
   kafkaRestClassRef:
     name: default
 ---
+# Admin user - SystemAdmin role on Kafka cluster for Control Center access
+# This is IN ADDITION to the CMF-scoped bindings above
+apiVersion: platform.confluent.io/v1beta1
+kind: ConfluentRolebinding
+metadata:
+  name: admin-kafka-systemadmin
+  namespace: kafka
+spec:
+  principal:
+    type: user
+    name: admin@osow.ski
+  role: SystemAdmin
+  # No clustersScopeByIds = defaults to Kafka cluster
+  kafkaRestClassRef:
+    name: default
+---
 # Shapes group - DeveloperManage role on shapes FlinkEnvironment
 apiVersion: platform.confluent.io/v1beta1
 kind: ConfluentRolebinding
