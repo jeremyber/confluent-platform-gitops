@@ -5,6 +5,7 @@ namespace: keycloak
 
 resources:
   - namespace.yaml
+  - admin-secret.yaml
   - postgres-secret.yaml
   - postgres.yaml
   - realm-configmap.yaml
