@@ -90,11 +90,12 @@ spec:
         # SSO/OIDC configuration for browser-based authentication (authorization code flow)
         # Used by Control Center for user login
         sso:
+          enabled: true
           clientCredentials:
             secretRef: oidc-client-credentials
           configurations:
             groupsClaimName: groups
-            subClaimName: sub
+            subClaimName: email
             # Issuer must match external HTTPS URL (JWT token claim validation)
             issuer: https://keycloak.flink-demo-rbac.confluentdemo.local/realms/confluent
             # Browser redirects use external HTTPS
