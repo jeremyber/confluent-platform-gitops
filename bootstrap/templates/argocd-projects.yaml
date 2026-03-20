@@ -143,6 +143,8 @@ spec:
       kind: FlinkEnvironment
     - group: platform.confluent.io
       kind: FlinkApplication
+    - group: platform.confluent.io
+      kind: Connector
     - group: monitoring.coreos.com
       kind: ServiceMonitor
     - group: monitoring.coreos.com
