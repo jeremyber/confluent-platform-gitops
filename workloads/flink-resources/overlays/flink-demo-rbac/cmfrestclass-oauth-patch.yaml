@@ -20,4 +20,4 @@ spec:
         # CFK will call this endpoint to exchange client credentials for access tokens
         configuration:
           tokenEndpointUri: http://keycloak.keycloak.svc.cluster.local:8080/realms/confluent/protocol/openid-connect/token
-          subjectClaimName: client_id
+          subClaimName: client_id
