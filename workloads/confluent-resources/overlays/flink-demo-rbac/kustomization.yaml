@@ -27,6 +27,12 @@ patches:
       kind: Kafka
       name: kafka
 
+  # Kafka broker - KRaft controller authentication
+  - path: kafka-broker-kraft-auth-patch.yaml
+    target:
+      kind: Kafka
+      name: kafka
+
   # KRaft controller - resources
   - path: kraft-controller-patch.yaml
     target:
