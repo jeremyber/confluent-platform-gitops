@@ -9,6 +9,7 @@ resources:
   - mds-keygen-job.yaml  # Generates mds-token secret with RSA keypair
   - oauth-client-secrets.yaml
   - oidc-client-credentials-secret.yaml  # OIDC client credentials for Control Center SSO
+  - controlcenter-oauth-client-secret.yaml  # OAuth client credentials for Control Center service account
   - confluentrolebindings.yaml
 
 # Cluster-specific patches

@@ -1,6 +1,20 @@
 # ConfluentRoleBindings for CMF RBAC Authorization
 # These role bindings grant permissions to users and groups for Flink resources
 ---
+# Control Center service account - SystemAdmin role for Kafka cluster management
+apiVersion: platform.confluent.io/v1beta1
+kind: ConfluentRolebinding
+metadata:
+  name: controlcenter-systemadmin
+  namespace: kafka
+spec:
+  principal:
+    type: user
+    name: controlcenter
+  role: SystemAdmin
+  kafkaRestClassRef:
+    name: default
+---
 # Admin user - SystemAdmin role on CMF cluster
 apiVersion: platform.confluent.io/v1beta1
 kind: ConfluentRolebinding
