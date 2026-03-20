@@ -29,8 +29,8 @@ spec:
           - User:krp  # Kafka REST Proxy principal
           - User:admin@osow.ski  # Admin user from Keycloak
         protectedUsers:
-          - mds
-          - superadmin
+          - User:mds
+          - User:superadmin
 
   # Enable RBAC authorization
   authorization:
