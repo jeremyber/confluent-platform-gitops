@@ -52,13 +52,16 @@ cmf:
           confluent.metadata.oauthbearer.token.endpoint.url: http://keycloak.keycloak.svc.cluster.local:8080/realms/confluent/protocol/openid-connect/token
           # Client ID for CMF service principal
           confluent.metadata.oauthbearer.login.client.id: cmf
-          # Client secret from Kubernetes secret (mounted via secret)
-          confluent.metadata.oauthbearer.login.client.secret: ${CONFLUENT_METADATA_OAUTHBEARER_LOGIN_CLIENT_SECRET}
+          # Client secret - hard-coded for demo (production should use external-secrets or vault)
+          # NOTE: CMF Helm chart v2.2.0 does not support extraEnv field for custom environment variables
+          confluent.metadata.oauthbearer.login.client.secret: cmf-secret
 
-# Environment variables for OAuth secrets
-env:
-  - name: CONFLUENT_METADATA_OAUTHBEARER_LOGIN_CLIENT_SECRET
-    valueFrom:
-      secretKeyRef:
-        name: cmf-mds-oauth-client
-        key: clientSecret
+# TODO: Re-enable when upgrading to CMF Helm chart 2.3.x which supports extraEnv
+# Environment variables for OAuth secrets (commented out - not supported in v2.2.0)
+# extraEnv:
+#   - name: CONFLUENT_METADATA_OAUTHBEARER_LOGIN_CLIENT_SECRET
+#     valueFrom:
+#       secretKeyRef:
+#         name: cmf-mds-oauth-client
+#         key: clientSecret
+# Then update line 56 to: confluent.metadata.oauthbearer.login.client.secret: ${CONFLUENT_METADATA_OAUTHBEARER_LOGIN_CLIENT_SECRET}
