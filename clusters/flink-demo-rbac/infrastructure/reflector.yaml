@@ -12,7 +12,7 @@ spec:
   source:
     repoURL: https://emberstack.github.io/helm-charts
     chart: reflector
-    targetRevision: 10.0.21
+    targetRevision: HEAD
     helm:
       values: |
         # Reflector - Kubernetes Secret/ConfigMap replication controller
