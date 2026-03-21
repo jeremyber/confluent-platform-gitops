@@ -232,7 +232,7 @@ Pod labels (`app`, `component`, `type`, `platform.confluent.io/origin`) are prop
 
 #### Operator metrics
 
-The Flink Kubernetes Operator itself is monitored via a separate `PodMonitor` defined in `workloads/flink-kubernetes-operator/podmonitor-operator.yaml`, targeting pods with `app.kubernetes.io/name: flink-kubernetes-operator`.
+The Flink Kubernetes Operator itself is monitored via a separate `PodMonitor` defined in `workloads/observability-resources/base/podmonitor-operator.yaml`, targeting pods with `app.kubernetes.io/name: flink-kubernetes-operator`.
 
 ### CMF UI (Future)
 
