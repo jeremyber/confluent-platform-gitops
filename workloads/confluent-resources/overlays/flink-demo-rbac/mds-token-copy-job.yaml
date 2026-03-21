@@ -4,11 +4,11 @@
 # Runs as ArgoCD PreSync hook after mds-keygen job completes
 ---
 # ServiceAccount for the copy job
+# Note: This gets created in kafka namespace due to kustomization.yaml namespace override
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: mds-token-copier
-  namespace: operator
   annotations:
     argocd.argoproj.io/sync-wave: "-8"
     argocd.argoproj.io/hook: PreSync
@@ -18,7 +18,6 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: mds-token-reader
-  namespace: kafka
   annotations:
     argocd.argoproj.io/sync-wave: "-8"
     argocd.argoproj.io/hook: PreSync
@@ -33,7 +32,6 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: mds-token-copier-reader
-  namespace: kafka
   annotations:
     argocd.argoproj.io/sync-wave: "-8"
     argocd.argoproj.io/hook: PreSync
@@ -44,7 +42,7 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: mds-token-copier
-    namespace: operator
+    namespace: kafka
 ---
 # Role to write to operator namespace
 apiVersion: rbac.authorization.k8s.io/v1
@@ -66,6 +64,7 @@ rules:
     verbs: ["create"]
 ---
 # RoleBinding in operator namespace
+# This must explicitly set namespace since it's cross-namespace
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
@@ -81,14 +80,14 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: mds-token-copier
-    namespace: operator
+    namespace: kafka
 ---
 # Job to copy MDS public key
+# Note: This gets created in kafka namespace due to kustomization.yaml namespace override
 apiVersion: batch/v1
 kind: Job
 metadata:
   name: mds-token-copier
-  namespace: operator
   annotations:
     argocd.argoproj.io/sync-wave: "-7"
     argocd.argoproj.io/hook: PreSync
