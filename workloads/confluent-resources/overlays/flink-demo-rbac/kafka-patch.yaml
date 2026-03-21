@@ -44,7 +44,7 @@ spec:
           secretRef: kafka-oauth-client
         oauthSettings:
           tokenEndpointUri: http://keycloak.keycloak.svc.cluster.local:8080/realms/confluent/protocol/openid-connect/token
-          expectedIssuer: http://keycloak.keycloak.svc.cluster.local:8080/realms/confluent
+          expectedIssuer: http://keycloak.flink-demo-rbac.confluentdemo.local:8080/realms/confluent
           jwksEndpointUri: http://keycloak.keycloak.svc.cluster.local:8080/realms/confluent/protocol/openid-connect/certs
           subClaimName: client_id
 
@@ -66,8 +66,8 @@ spec:
   authorization:
     type: rbac
     superUsers:
-      - User:kafka
       - User:admin@osow.ski
+      - User:kafka
 
   # ==============================================================================
   # MDS (METADATA SERVICE) - RBAC and SSO/OIDC configuration
@@ -84,17 +84,18 @@ spec:
         oauth:
           configurations:
             jwksEndpointUri: http://keycloak.keycloak.svc.cluster.local:8080/realms/confluent/protocol/openid-connect/certs
-            expectedIssuer: http://keycloak.keycloak.svc.cluster.local:8080/realms/confluent
+            expectedIssuer: http://keycloak.flink-demo-rbac.confluentdemo.local:8080/realms/confluent
             subClaimName: client_id
 
         # SSO/OIDC configuration for browser-based authentication (authorization code flow)
         # Used by Control Center for user login
         sso:
+          enabled: true
           clientCredentials:
             secretRef: oidc-client-credentials
           configurations:
             groupsClaimName: groups
-            subClaimName: sub
+            subClaimName: email
             # Issuer must match external HTTPS URL (JWT token claim validation)
             issuer: https://keycloak.flink-demo-rbac.confluentdemo.local/realms/confluent
             # Browser redirects use external HTTPS
@@ -102,7 +103,7 @@ spec:
             # Server-side calls use internal HTTP (no TLS)
             jwksEndpointUri: http://keycloak.keycloak.svc.cluster.local:8080/realms/confluent/protocol/openid-connect/certs
             tokenBaseEndpointUri: http://keycloak.keycloak.svc.cluster.local:8080/realms/confluent/protocol/openid-connect/token
-            refreshToken: true
+            refreshToken: false
             sessionTokenExpiry: 900000      # 15 minutes
             sessionMaxTimeout: 21600000     # 6 hours
 
@@ -140,7 +141,7 @@ spec:
           secretRef: kafka-oauth-client
         oauthSettings:
           tokenEndpointUri: http://keycloak.keycloak.svc.cluster.local:8080/realms/confluent/protocol/openid-connect/token
-          expectedIssuer: http://keycloak.keycloak.svc.cluster.local:8080/realms/confluent
+          expectedIssuer: http://keycloak.flink-demo-rbac.confluentdemo.local:8080/realms/confluent
           jwksEndpointUri: http://keycloak.keycloak.svc.cluster.local:8080/realms/confluent/protocol/openid-connect/certs
           subClaimName: client_id
 

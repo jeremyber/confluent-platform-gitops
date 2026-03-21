@@ -59,7 +59,7 @@ spec:
       authentication:
         type: oauth
         jaasConfig:
-          secretRef: kafka-oauth-client
+          secretRef: controlcenter-oauth-client
         oauthSettings:
           subClaimName: client_id
           tokenEndpointUri: http://keycloak.keycloak.svc.cluster.local:8080/realms/confluent/protocol/openid-connect/token
@@ -77,10 +77,10 @@ spec:
       authentication:
         type: oauth
         oauth:
-          secretRef: kafka-oauth-client
+          secretRef: controlcenter-oauth-client
           configuration:
             tokenEndpointUri: http://keycloak.keycloak.svc.cluster.local:8080/realms/confluent/protocol/openid-connect/token
-            expectedIssuer: http://keycloak.keycloak.svc.cluster.local:8080/realms/confluent
+            expectedIssuer: http://keycloak.flink-demo-rbac.confluentdemo.local:8080/realms/confluent
             jwksEndpointUri: http://keycloak.keycloak.svc.cluster.local:8080/realms/confluent/protocol/openid-connect/certs
             subClaimName: client_id
 
@@ -90,6 +90,6 @@ spec:
       authentication:
         type: oauth
         oauth:
-          secretRef: kafka-oauth-client
+          secretRef: controlcenter-oauth-client
           configuration:
             tokenEndpointUri: http://keycloak.keycloak.svc.cluster.local:8080/realms/confluent/protocol/openid-connect/token

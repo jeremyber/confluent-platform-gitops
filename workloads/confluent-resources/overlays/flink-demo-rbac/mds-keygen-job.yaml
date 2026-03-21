@@ -3,7 +3,6 @@
 # Runs as ArgoCD PreSync hook to ensure keys exist before Kafka starts
 ---
 # ServiceAccount for the keygen job
-# Regular resource (not hook) with early sync-wave to ensure it exists before Job runs
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -11,9 +10,9 @@ metadata:
   namespace: kafka
   annotations:
     argocd.argoproj.io/sync-wave: "-10"
+    argocd.argoproj.io/hook: PreSync
 ---
 # Role to allow creating/updating the mds-token secret
-# Regular resource (not hook) with early sync-wave
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
@@ -21,6 +20,7 @@ metadata:
   namespace: kafka
   annotations:
     argocd.argoproj.io/sync-wave: "-10"
+    argocd.argoproj.io/hook: PreSync
 rules:
   - apiGroups: [""]
     resources: ["secrets"]
@@ -32,7 +32,6 @@ rules:
     verbs: ["create"]
 ---
 # RoleBinding for the keygen ServiceAccount
-# Regular resource (not hook) with early sync-wave
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
@@ -40,6 +39,7 @@ metadata:
   namespace: kafka
   annotations:
     argocd.argoproj.io/sync-wave: "-10"
+    argocd.argoproj.io/hook: PreSync
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -50,7 +50,6 @@ subjects:
     namespace: kafka
 ---
 # Job to generate MDS token keypair
-# Regular Job with very low sync-wave to run before Kafka resources
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -58,6 +57,8 @@ metadata:
   namespace: kafka
   annotations:
     argocd.argoproj.io/sync-wave: "-9"
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
 spec:
   ttlSecondsAfterFinished: 300  # Clean up 5 minutes after completion
   backoffLimit: 3
@@ -89,7 +90,16 @@ spec:
                 if echo "$PUBLIC_KEY" | grep -q "REPLACE_WITH_ACTUAL_PUBLIC_KEY"; then
                   echo "Found placeholder keys, will regenerate..."
                 elif echo "$PUBLIC_KEY" | grep -q "BEGIN PUBLIC KEY"; then
-                  echo "Valid keys already exist, skipping generation."
+                  echo "Valid keys already exist, ensuring reflector annotations are present..."
+
+                  # Add reflector annotations to existing secret
+                  kubectl annotate secret mds-token -n kafka \
+                    reflector.v1.k8s.emberstack.com/reflection-allowed="true" \
+                    reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces="operator" \
+                    reflector.v1.k8s.emberstack.com/reflection-auto-enabled="true" \
+                    --overwrite
+
+                  echo "Reflector annotations applied to existing secret"
                   exit 0
                 else
                   echo "Invalid key format detected, will regenerate..."
@@ -114,16 +124,22 @@ spec:
               echo "- Private key: /tmp/mds-tokenkeypair.pem"
               echo "- Public key: /tmp/mds-publickey.pem"
 
-              # Create or update the secret
-              echo "Creating/updating mds-token secret..."
+              # Create or update the secret with reflector annotations
+              echo "Creating/updating mds-token secret with reflector annotations..."
 
               kubectl create secret generic mds-token \
                 --from-file=mdsPublicKey.pem=/tmp/mds-publickey.pem \
                 --from-file=mdsTokenKeyPair.pem=/tmp/mds-tokenkeypair.pem \
                 --namespace kafka \
-                --dry-run=client -o yaml | kubectl apply -f -
+                --dry-run=client -o yaml | \
+              kubectl annotate -f - \
+                reflector.v1.k8s.emberstack.com/reflection-allowed="true" \
+                reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces="operator" \
+                reflector.v1.k8s.emberstack.com/reflection-auto-enabled="true" \
+                --local --dry-run=client -o yaml | \
+              kubectl apply -f -
 
-              echo "Secret mds-token created/updated successfully"
+              echo "Secret mds-token created/updated successfully with reflector annotations"
 
               # Clean up temporary files
               rm -f /tmp/mds-tokenkeypair.pem /tmp/mds-publickey.pem

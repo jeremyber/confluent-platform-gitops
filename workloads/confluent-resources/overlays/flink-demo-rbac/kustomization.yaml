@@ -6,9 +6,10 @@ namespace: kafka
 # Additional resources for MDS/RBAC
 resources:
   - ../../base
-  - mds-keygen-job.yaml  # Generates mds-token secret with RSA keypair
+  - mds-keygen-job.yaml  # Generates mds-token secret with RSA keypair and reflector annotations
   - oauth-client-secrets.yaml
   - oidc-client-credentials-secret.yaml  # OIDC client credentials for Control Center SSO
+  - controlcenter-oauth-client-secret.yaml  # OAuth client credentials for Control Center service account
   - confluentrolebindings.yaml
 
 # Cluster-specific patches
@@ -36,6 +37,12 @@ patches:
     target:
       kind: SchemaRegistry
       name: schemaregistry
+
+  # KafkaRestClass - OAuth authentication for RBAC/MDS
+  - path: kafkarestclass-patch.yaml
+    target:
+      kind: KafkaRestClass
+      name: default
 
   # Schema Registry - ingress
   - path: schema-registry-ingress-patch.yaml

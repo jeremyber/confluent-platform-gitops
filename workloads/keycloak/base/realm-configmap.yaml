@@ -236,6 +236,17 @@ data:
                 "claim.name": "groups",
                 "userinfo.token.claim": "true"
               }
+            },
+            {
+              "name": "audience-mapper",
+              "protocol": "openid-connect",
+              "protocolMapper": "oidc-audience-mapper",
+              "consentRequired": false,
+              "config": {
+                "included.client.audience": "cmf",
+                "id.token.claim": "true",
+                "access.token.claim": "true"
+              }
             }
           ]
         },
@@ -245,12 +256,26 @@ data:
           "protocol": "openid-connect",
           "publicClient": false,
           "directAccessGrantsEnabled": true,
+          "serviceAccountsEnabled": true,
           "standardFlowEnabled": true,
           "redirectUris": [
             "https://controlcenter.flink-demo-rbac.confluentdemo.local/api/metadata/security/1.0/oidc/authorization-code/callback"
           ],
           "webOrigins": ["*"],
           "secret": "controlcenter-secret",
+          "defaultClientScopes": [
+            "web-origins",
+            "acr",
+            "profile",
+            "roles",
+            "email"
+          ],
+          "optionalClientScopes": [
+            "address",
+            "phone",
+            "microprofile-jwt",
+            "offline_access"
+          ],
           "protocolMappers": [
             {
               "name": "email",
