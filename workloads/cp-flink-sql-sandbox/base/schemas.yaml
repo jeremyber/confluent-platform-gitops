@@ -1,87 +1,140 @@
+---
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: myevent-value-avro-schema
+  name: users-value-avro-schema
   namespace: flink
 data:
   schema: |
     {
-    "fields": [
-      {
-        "name": "id",
-        "type": "string",
-        "doc": "Unique identifier for the event"
-      },
-      {
-        "name": "value",
-        "type": "int",
-        "doc": "Some integer value to aggregate"
-      },
-      {
-        "name": "event_time",
-        "type": {
-          "type": "long",
-          "logicalType": "timestamp-millis"
-        },
-        "doc": "Timestamp of the event in milliseconds since the epoch"
-      },
-      {
-        "name": "category",
-        "type": ["null", "string"],
-        "default": null,
-        "doc": "Optional category for grouping"
-      }
-    ],
-    "type": "record",
-    "name": "MyEvent",
-    "namespace": "com.example.avro"
+      "type": "record",
+      "name": "User",
+      "namespace": "com.example.demo",
+      "fields": [
+        {"name": "user_id", "type": "string", "doc": "Unique user identifier"},
+        {"name": "name", "type": "string", "doc": "Full name of the user"},
+        {"name": "email", "type": "string", "doc": "Email address"},
+        {"name": "region", "type": "string", "doc": "Geographic region (e.g., US-East, EU-West)"},
+        {
+          "name": "registered_at",
+          "type": {"type": "long", "logicalType": "timestamp-millis"},
+          "doc": "Registration timestamp in milliseconds since epoch"
+        }
+      ]
     }
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: myaggregated-value-avro-schema
+  name: orders-value-avro-schema
   namespace: flink
 data:
   schema: |
     {
-    "type": "record",
-    "name": "MyAggregated",
-    "namespace": "com.example.flink.aggregated",
-    "fields": [
-      {
-        "name": "window_start",
-        "type": {
-          "type": "long",
-          "logicalType": "timestamp-millis"
+      "type": "record",
+      "name": "Order",
+      "namespace": "com.example.demo",
+      "fields": [
+        {"name": "order_id", "type": "string", "doc": "Unique order identifier"},
+        {"name": "user_id", "type": "string", "doc": "User who placed the order"},
+        {"name": "product", "type": "string", "doc": "Product name"},
+        {"name": "amount", "type": "double", "doc": "Order amount in the specified currency"},
+        {"name": "currency", "type": "string", "doc": "Currency code (e.g., USD, EUR)"},
+        {
+          "name": "order_time",
+          "type": {"type": "long", "logicalType": "timestamp-millis"},
+          "doc": "Order timestamp in milliseconds since epoch"
+        }
+      ]
+    }
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: clickstream-value-avro-schema
+  namespace: flink
+data:
+  schema: |
+    {
+      "type": "record",
+      "name": "ClickEvent",
+      "namespace": "com.example.demo",
+      "fields": [
+        {"name": "session_id", "type": "string", "doc": "Browser session identifier"},
+        {"name": "user_id", "type": "string", "doc": "User performing the action"},
+        {"name": "page_url", "type": "string", "doc": "URL of the page visited"},
+        {"name": "action", "type": "string", "doc": "Action performed (e.g., view, click, add_to_cart)"},
+        {
+          "name": "event_time",
+          "type": {"type": "long", "logicalType": "timestamp-millis"},
+          "doc": "Event timestamp in milliseconds since epoch"
+        }
+      ]
+    }
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: enriched-orders-value-avro-schema
+  namespace: flink
+data:
+  schema: |
+    {
+      "type": "record",
+      "name": "EnrichedOrder",
+      "namespace": "com.example.demo",
+      "fields": [
+        {"name": "order_id", "type": "string", "doc": "Unique order identifier"},
+        {"name": "user_id", "type": "string", "doc": "User who placed the order"},
+        {"name": "product", "type": "string", "doc": "Product name"},
+        {"name": "amount", "type": "double", "doc": "Order amount"},
+        {"name": "currency", "type": "string", "doc": "Currency code"},
+        {
+          "name": "order_time",
+          "type": {"type": "long", "logicalType": "timestamp-millis"},
+          "doc": "Order timestamp"
         },
-        "doc": "Start timestamp of the aggregation window in milliseconds since the epoch"
-      },
-      {
-        "name": "category",
-        "type": [
-          "null",
-          "string"
-        ],
-        "doc": "Category for the aggregated data (can be null if source category is null)"
-      },
-      {
-        "name": "total_value",
-        "type": "int",
-        "doc": "Sum of the 'value' field within the window"
-      },
-      {
-        "name": "event_count",
-        "type": "long",
-        "doc": "Count of events within the window"
-      }
-    ]
+        {"name": "name", "type": "string", "doc": "User's full name"},
+        {"name": "email", "type": "string", "doc": "User's email address"},
+        {"name": "region", "type": "string", "doc": "User's region"},
+        {"name": "click_count", "type": ["null", "long"], "default": null, "doc": "Number of recent clicks by this user"},
+        {"name": "last_page_url", "type": ["null", "string"], "default": null, "doc": "Last page visited by this user"}
+      ]
+    }
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: user-activity-value-avro-schema
+  namespace: flink
+data:
+  schema: |
+    {
+      "type": "record",
+      "name": "UserActivity",
+      "namespace": "com.example.demo",
+      "fields": [
+        {"name": "user_id", "type": "string", "doc": "Unique user identifier"},
+        {"name": "name", "type": "string", "doc": "User's full name"},
+        {"name": "email", "type": "string", "doc": "User's email address"},
+        {"name": "region", "type": "string", "doc": "User's region"},
+        {"name": "order_count", "type": ["null", "long"], "default": null, "doc": "Number of orders in the window"},
+        {"name": "total_spend", "type": ["null", "double"], "default": null, "doc": "Total spend in the window"},
+        {"name": "click_count", "type": ["null", "long"], "default": null, "doc": "Number of clicks in the window"},
+        {"name": "unique_pages", "type": ["null", "long"], "default": null, "doc": "Number of unique pages visited"},
+        {
+          "name": "window_start",
+          "type": ["null", {"type": "long", "logicalType": "timestamp-millis"}],
+          "default": null,
+          "doc": "Start of the aggregation window"
+        }
+      ]
     }
 ---
 apiVersion: platform.confluent.io/v1beta1
 kind: Schema
 metadata:
-  name: myevent-value
+  name: users-value
   annotations:
     argocd.argoproj.io/sync-wave: "35"
 spec:
@@ -89,14 +142,14 @@ spec:
     name: schemaregistry
     namespace: kafka
   data:
-    configRef: myevent-value-avro-schema
+    configRef: users-value-avro-schema
     format: avro
   compatibilityLevel: BACKWARD
 ---
 apiVersion: platform.confluent.io/v1beta1
 kind: Schema
 metadata:
-  name: myaggregated-value
+  name: orders-value
   annotations:
     argocd.argoproj.io/sync-wave: "35"
 spec:
@@ -104,6 +157,51 @@ spec:
     name: schemaregistry
     namespace: kafka
   data:
-    configRef: myaggregated-value-avro-schema
+    configRef: orders-value-avro-schema
+    format: avro
+  compatibilityLevel: BACKWARD
+---
+apiVersion: platform.confluent.io/v1beta1
+kind: Schema
+metadata:
+  name: clickstream-value
+  annotations:
+    argocd.argoproj.io/sync-wave: "35"
+spec:
+  schemaRegistryClusterRef:
+    name: schemaregistry
+    namespace: kafka
+  data:
+    configRef: clickstream-value-avro-schema
+    format: avro
+  compatibilityLevel: BACKWARD
+---
+apiVersion: platform.confluent.io/v1beta1
+kind: Schema
+metadata:
+  name: enriched-orders-value
+  annotations:
+    argocd.argoproj.io/sync-wave: "35"
+spec:
+  schemaRegistryClusterRef:
+    name: schemaregistry
+    namespace: kafka
+  data:
+    configRef: enriched-orders-value-avro-schema
+    format: avro
+  compatibilityLevel: BACKWARD
+---
+apiVersion: platform.confluent.io/v1beta1
+kind: Schema
+metadata:
+  name: user-activity-value
+  annotations:
+    argocd.argoproj.io/sync-wave: "35"
+spec:
+  schemaRegistryClusterRef:
+    name: schemaregistry
+    namespace: kafka
+  data:
+    configRef: user-activity-value-avro-schema
     format: avro
   compatibilityLevel: BACKWARD
