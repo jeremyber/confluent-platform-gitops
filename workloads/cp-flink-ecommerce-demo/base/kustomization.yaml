@@ -1,0 +1,12 @@
+---
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - topics.yaml
+  - schemas.yaml
+  - connectors.yaml
+  - cmf-config-configmap.yaml
+  - cmf-compute-pool-job.yaml
+  - flink-sql-jobs.yaml
+  - sample-queries-configmap.yaml

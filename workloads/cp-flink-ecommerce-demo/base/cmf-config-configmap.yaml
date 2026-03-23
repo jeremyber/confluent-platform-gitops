@@ -1,0 +1,77 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ecommerce-cmf-compute-pool-config
+data:
+  compute-pool.json: |
+    {
+      "apiVersion": "cmf.confluent.io/v1",
+      "kind": "ComputePool",
+      "metadata": {
+        "name": "ecommerce-pool"
+      },
+      "spec": {
+        "type": "DEDICATED",
+        "clusterSpec": {
+          "flinkVersion": "v1_19",
+          "image": "confluentinc/cp-flink-sql:1.19-cp5",
+          "flinkConfiguration": {
+            "pipeline.operator-chaining.enabled": "false",
+            "execution.checkpointing.interval": "10s",
+            "taskmanager.numberOfTaskSlots": "4",
+            "state.checkpoints.dir": "s3://warehouse/checkpoints/",
+            "state.savepoints.dir": "s3://warehouse/savepoints/",
+            "s3.endpoint": "http://s3proxy.flink.svc.cluster.local:8000",
+            "s3.path.style.access": "true",
+            "s3.connection.ssl.enabled": "false",
+            "s3.access-key": "admin",
+            "s3.secret-key": "password",
+            "state.backend": "filesystem",
+            "state.checkpoints.timeout": "600000",
+            "execution.checkpointing.min-pause": "5000",
+            "execution.checkpointing.max-concurrent-checkpoints": "1",
+            "high-availability.type": "kubernetes",
+            "high-availability.storageDir": "s3://warehouse/",
+            "state.checkpoints.num-retained": "10",
+            "kubernetes.operator.job.autoscaler.enabled": "true",
+            "kubernetes.operator.job.autoscaler.metrics.window": "3m",
+            "kubernetes.operator.job.autoscaler.stabilization.interval": "1m",
+            "kubernetes.operator.job.autoscaler.target.utilization": "0.7",
+            "kubernetes.operator.job.autoscaler.scale-down.max-factor": "0.5",
+            "kubernetes.operator.job.autoscaler.scale-up.max-factor": "2.0",
+            "table.exec.state.ttl": "1h"
+          },
+          "podTemplate": {
+            "spec": {
+              "restartPolicy": "Always",
+              "terminationGracePeriodSeconds": 30,
+              "containers": [
+                {
+                  "name": "flink-main-container",
+                  "imagePullPolicy": "IfNotPresent",
+                  "securityContext": {
+                    "runAsUser": 9999
+                  }
+                }
+              ]
+            }
+          },
+          "taskManager": {
+            "replicas": 1,
+            "minReplicas": 1,
+            "maxReplicas": 5,
+            "resource": {
+              "cpu": 1.0,
+              "memory": "1700m"
+            }
+          },
+          "jobManager": {
+            "resource": {
+              "cpu": 1,
+              "memory": "1700m"
+            }
+          }
+        }
+      }
+    }
