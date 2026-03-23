@@ -135,7 +135,6 @@ apiVersion: platform.confluent.io/v1beta1
 kind: Schema
 metadata:
   name: users-value
-  namespace: kafka
   annotations:
     argocd.argoproj.io/sync-wave: "35"
 spec:
@@ -151,7 +150,6 @@ apiVersion: platform.confluent.io/v1beta1
 kind: Schema
 metadata:
   name: orders-value
-  namespace: kafka
   annotations:
     argocd.argoproj.io/sync-wave: "35"
 spec:
@@ -167,7 +165,6 @@ apiVersion: platform.confluent.io/v1beta1
 kind: Schema
 metadata:
   name: clickstream-value
-  namespace: kafka
   annotations:
     argocd.argoproj.io/sync-wave: "35"
 spec:
@@ -183,7 +180,6 @@ apiVersion: platform.confluent.io/v1beta1
 kind: Schema
 metadata:
   name: enriched-orders-value
-  namespace: kafka
   annotations:
     argocd.argoproj.io/sync-wave: "35"
 spec:
@@ -199,7 +195,6 @@ apiVersion: platform.confluent.io/v1beta1
 kind: Schema
 metadata:
   name: user-activity-value
-  namespace: kafka
   annotations:
     argocd.argoproj.io/sync-wave: "35"
 spec:

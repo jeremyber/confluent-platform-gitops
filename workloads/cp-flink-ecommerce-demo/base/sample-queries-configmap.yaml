@@ -6,13 +6,13 @@ metadata:
   namespace: flink
 data:
   01-inspect-users.sql: |
-    -- Inspect user records from the datagen connector
+    -- Inspect user records from the Flink datagen source
     SELECT * FROM `kafka-cat`.`main-kafka-cluster`.`users` LIMIT 10;
   02-inspect-orders.sql: |
-    -- Inspect order records from the datagen connector
+    -- Inspect order records from the Flink datagen source
     SELECT * FROM `kafka-cat`.`main-kafka-cluster`.`orders` LIMIT 10;
   03-inspect-clickstream.sql: |
-    -- Inspect clickstream events from the datagen connector
+    -- Inspect clickstream events from the Flink datagen source
     SELECT * FROM `kafka-cat`.`main-kafka-cluster`.`clickstream` LIMIT 10;
   04-users-by-region.sql: |
     -- Count users by region

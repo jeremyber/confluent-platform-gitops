@@ -5,6 +5,135 @@ metadata:
   name: flink-sql-statements
   namespace: flink
 data:
+  datagen-users.sql: |
+    INSERT INTO `kafka-cat`.`main-kafka-cluster`.`users`
+    SELECT
+      CONCAT('user-', CAST(MOD(user_seq, 1000) + 1 AS STRING)) AS `user_id`,
+      CASE MOD(user_seq, 20)
+        WHEN 0 THEN 'Alice Johnson'
+        WHEN 1 THEN 'Bob Smith'
+        WHEN 2 THEN 'Carol Williams'
+        WHEN 3 THEN 'David Brown'
+        WHEN 4 THEN 'Emma Davis'
+        WHEN 5 THEN 'Frank Miller'
+        WHEN 6 THEN 'Grace Wilson'
+        WHEN 7 THEN 'Henry Moore'
+        WHEN 8 THEN 'Iris Taylor'
+        WHEN 9 THEN 'Jack Anderson'
+        WHEN 10 THEN 'Karen Thomas'
+        WHEN 11 THEN 'Leo Jackson'
+        WHEN 12 THEN 'Mia White'
+        WHEN 13 THEN 'Noah Harris'
+        WHEN 14 THEN 'Olivia Martin'
+        WHEN 15 THEN 'Paul Garcia'
+        WHEN 16 THEN 'Quinn Martinez'
+        WHEN 17 THEN 'Rachel Robinson'
+        WHEN 18 THEN 'Sam Clark'
+        ELSE 'Tina Rodriguez'
+      END AS `name`,
+      CONCAT(
+        LOWER(CASE MOD(user_seq, 20)
+          WHEN 0 THEN 'alice.johnson'
+          WHEN 1 THEN 'bob.smith'
+          WHEN 2 THEN 'carol.williams'
+          WHEN 3 THEN 'david.brown'
+          WHEN 4 THEN 'emma.davis'
+          WHEN 5 THEN 'frank.miller'
+          WHEN 6 THEN 'grace.wilson'
+          WHEN 7 THEN 'henry.moore'
+          WHEN 8 THEN 'iris.taylor'
+          WHEN 9 THEN 'jack.anderson'
+          WHEN 10 THEN 'karen.thomas'
+          WHEN 11 THEN 'leo.jackson'
+          WHEN 12 THEN 'mia.white'
+          WHEN 13 THEN 'noah.harris'
+          WHEN 14 THEN 'olivia.martin'
+          WHEN 15 THEN 'paul.garcia'
+          WHEN 16 THEN 'quinn.martinez'
+          WHEN 17 THEN 'rachel.robinson'
+          WHEN 18 THEN 'sam.clark'
+          ELSE 'tina.rodriguez'
+        END),
+        CASE MOD(user_seq, 3)
+          WHEN 0 THEN '@example.com'
+          WHEN 1 THEN '@acme.io'
+          ELSE '@testmail.org'
+        END
+      ) AS `email`,
+      CASE MOD(user_seq, 5)
+        WHEN 0 THEN 'US-East'
+        WHEN 1 THEN 'US-West'
+        WHEN 2 THEN 'EU-West'
+        WHEN 3 THEN 'EU-Central'
+        ELSE 'APAC'
+      END AS `region`,
+      `ts` AS `registered_at`
+    FROM (
+      SELECT
+        *,
+        PROCTIME() AS `ts`
+      FROM TABLE(GENERATOR(RATE => 10))
+    ) AS src
+    CROSS JOIN UNNEST(SEQUENCE(1, 10)) AS T(user_seq_offset)
+    CROSS JOIN (SELECT CAST(FLOOR(RAND() * 1000000) AS INT) AS user_seq FROM (VALUES(1))) AS r
+  datagen-orders.sql: |
+    INSERT INTO `kafka-cat`.`main-kafka-cluster`.`orders`
+    SELECT
+      CONCAT('order-', CAST(CAST(FLOOR(RAND() * 1000000) AS INT) AS STRING), '-', CAST(CURRENT_TIMESTAMP AS STRING)) AS `order_id`,
+      CONCAT('user-', CAST(CAST(FLOOR(RAND() * 1000) + 1 AS INT) AS STRING)) AS `user_id`,
+      CASE CAST(FLOOR(RAND() * 15) AS INT)
+        WHEN 0 THEN 'Wireless Headphones'
+        WHEN 1 THEN 'Laptop Stand'
+        WHEN 2 THEN 'Mechanical Keyboard'
+        WHEN 3 THEN 'USB-C Hub'
+        WHEN 4 THEN 'Webcam HD Pro'
+        WHEN 5 THEN 'Monitor 27 inch'
+        WHEN 6 THEN 'Mouse Pad XL'
+        WHEN 7 THEN 'Phone Case'
+        WHEN 8 THEN 'Bluetooth Speaker'
+        WHEN 9 THEN 'Desk Lamp'
+        WHEN 10 THEN 'Cable Organizer'
+        WHEN 11 THEN 'Screen Protector'
+        WHEN 12 THEN 'Portable Charger'
+        WHEN 13 THEN 'Smart Watch'
+        ELSE 'Tablet Sleeve'
+      END AS `product`,
+      ROUND(RAND() * 495 + 5, 2) AS `amount`,
+      CASE CAST(FLOOR(RAND() * 3) AS INT)
+        WHEN 0 THEN 'USD'
+        WHEN 1 THEN 'EUR'
+        ELSE 'GBP'
+      END AS `currency`,
+      PROCTIME() AS `order_time`
+    FROM TABLE(GENERATOR(RATE => 100))
+  datagen-clickstream.sql: |
+    INSERT INTO `kafka-cat`.`main-kafka-cluster`.`clickstream`
+    SELECT
+      CONCAT('session-', CAST(CAST(FLOOR(RAND() * 50000) AS INT) AS STRING)) AS `session_id`,
+      CONCAT('user-', CAST(CAST(FLOOR(RAND() * 1000) + 1 AS INT) AS STRING)) AS `user_id`,
+      CASE CAST(FLOOR(RAND() * 12) AS INT)
+        WHEN 0 THEN '/products/headphones'
+        WHEN 1 THEN '/products/laptop-stand'
+        WHEN 2 THEN '/products/keyboard'
+        WHEN 3 THEN '/cart'
+        WHEN 4 THEN '/checkout'
+        WHEN 5 THEN '/account/orders'
+        WHEN 6 THEN '/search?q=electronics'
+        WHEN 7 THEN '/categories/accessories'
+        WHEN 8 THEN '/products/monitor'
+        WHEN 9 THEN '/deals'
+        WHEN 10 THEN '/account/wishlist'
+        ELSE '/homepage'
+      END AS `page_url`,
+      CASE CAST(FLOOR(RAND() * 5) AS INT)
+        WHEN 0 THEN 'view'
+        WHEN 1 THEN 'click'
+        WHEN 2 THEN 'add_to_cart'
+        WHEN 3 THEN 'search'
+        ELSE 'purchase'
+      END AS `action`,
+      PROCTIME() AS `event_time`
+    FROM TABLE(GENERATOR(RATE => 100))
   enriched-orders.sql: |
     INSERT INTO `kafka-cat`.`main-kafka-cluster`.`enriched-orders`
     SELECT
@@ -126,23 +255,34 @@ spec:
         - |
           set -e
 
-          echo "Submitting enriched-orders SQL job..."
-          confluent flink statement create enriched-orders \
-            --sql "$(cat /sql/enriched-orders.sql)" \
-            --compute-pool ecommerce-pool \
-            --environment env1 \
-            --database main-kafka-cluster \
-            --catalog kafka-cat \
-            --url ${CMF_URL} || echo "Statement may already exist"
+          # Submit datagen jobs first to start producing data
+          for job in datagen-users datagen-orders datagen-clickstream; do
+            echo "Submitting ${job} SQL job..."
+            confluent flink statement create ${job} \
+              --sql "$(cat /sql/${job}.sql)" \
+              --compute-pool ecommerce-pool \
+              --environment env1 \
+              --database main-kafka-cluster \
+              --catalog kafka-cat \
+              --url ${CMF_URL} || echo "Statement ${job} may already exist"
+            sleep 2
+          done
 
-          echo "Submitting user-activity SQL job..."
-          confluent flink statement create user-activity \
-            --sql "$(cat /sql/user-activity.sql)" \
-            --compute-pool ecommerce-pool \
-            --environment env1 \
-            --database main-kafka-cluster \
-            --catalog kafka-cat \
-            --url ${CMF_URL} || echo "Statement may already exist"
+          echo "Waiting 10s for data to start flowing..."
+          sleep 10
+
+          # Submit join/aggregation jobs
+          for job in enriched-orders user-activity; do
+            echo "Submitting ${job} SQL job..."
+            confluent flink statement create ${job} \
+              --sql "$(cat /sql/${job}.sql)" \
+              --compute-pool ecommerce-pool \
+              --environment env1 \
+              --database main-kafka-cluster \
+              --catalog kafka-cat \
+              --url ${CMF_URL} || echo "Statement ${job} may already exist"
+            sleep 2
+          done
 
           echo "Listing running statements..."
           confluent flink statement list \

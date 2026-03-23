@@ -130,7 +130,7 @@ Security rules are detailed in the [Code Review Checklist](./docs/code_review_ch
 3. Develop and commit on the feature branch within the worktree
 4. **MANDATORY: Update relevant documentation in `/docs`** (see checklist for which files)
 5. **MANDATORY: Review [Code Review Checklist](./docs/code_review_checklist.md)** before creating PR
-6. Push the branch: `git push -u origin feature-<github-issue-id>/<feature-name>`
+6. Push the branch: `git push-external -u origin feature-<github-issue-id>/<feature-name>`
 7. Create a PR to merge into `main`
 8. After PR is merged, cleanup is handled automatically by Claude Code or manually remove worktree:
    ```bash
@@ -198,6 +198,15 @@ git worktree remove ../confluent-platform-gitops-kafka-metrics
 - Cannot checkout the same branch in multiple worktrees
 - All worktrees share git objects (commits, stashes)
 - Must remove worktree before deleting the branch
+
+### Forking & Testing from a Fork
+
+When working from a fork (e.g., for PRs to the upstream repo), use the provided scripts to update repo URLs and target revisions across all ArgoCD Application manifests:
+
+- **`./scripts/update-repo-urls.sh <new-repo-url>`** — Updates all ArgoCD Application `repoURL` fields and `bootstrap/values.yaml` to point at a fork. Supports `--dry-run` to preview changes. Requires `yq`.
+- **`./scripts/prepare-release.sh`** — Updates `targetRevision` across all Application manifests when pinning to a specific version tag.
+
+These scripts ensure consistency across all cluster and bootstrap manifests. Always run `update-repo-urls.sh` after forking before deploying to a cluster.
 
 ### Commits
 - Write clear commit messages describing the changes
