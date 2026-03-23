@@ -2,12 +2,27 @@
 apiVersion: platform.confluent.io/v1beta1
 kind: KafkaTopic
 metadata:
-  name: myevent
+  name: users
   annotations:
     argocd.argoproj.io/sync-wave: "30"
 spec:
   replicas: 3
-  partitionCount: 1
+  partitionCount: 6
+  kafkaRestClassRef:
+    name: default
+    namespace: kafka
+  configs:
+    cleanup.policy: "compact"
+---
+apiVersion: platform.confluent.io/v1beta1
+kind: KafkaTopic
+metadata:
+  name: orders
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+spec:
+  replicas: 3
+  partitionCount: 6
   kafkaRestClassRef:
     name: default
     namespace: kafka
@@ -17,12 +32,42 @@ spec:
 apiVersion: platform.confluent.io/v1beta1
 kind: KafkaTopic
 metadata:
-  name: myaggregated
+  name: clickstream
   annotations:
     argocd.argoproj.io/sync-wave: "30"
 spec:
   replicas: 3
-  partitionCount: 1
+  partitionCount: 6
+  kafkaRestClassRef:
+    name: default
+    namespace: kafka
+  configs:
+    cleanup.policy: "delete"
+---
+apiVersion: platform.confluent.io/v1beta1
+kind: KafkaTopic
+metadata:
+  name: enriched-orders
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+spec:
+  replicas: 3
+  partitionCount: 6
+  kafkaRestClassRef:
+    name: default
+    namespace: kafka
+  configs:
+    cleanup.policy: "delete"
+---
+apiVersion: platform.confluent.io/v1beta1
+kind: KafkaTopic
+metadata:
+  name: user-activity
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+spec:
+  replicas: 3
+  partitionCount: 6
   kafkaRestClassRef:
     name: default
     namespace: kafka
