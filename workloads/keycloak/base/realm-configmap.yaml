@@ -258,6 +258,7 @@ data:
           "directAccessGrantsEnabled": true,
           "serviceAccountsEnabled": true,
           "standardFlowEnabled": true,
+          "oauth2DeviceAuthorizationGrantEnabled": true,
           "redirectUris": [
             "https://controlcenter.flink-demo-rbac.confluentdemo.local/api/metadata/security/1.0/oidc/authorization-code/callback"
           ],
