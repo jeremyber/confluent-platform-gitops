@@ -58,7 +58,7 @@ spec:
 
               if [ "${SECRET_EXISTS}" = "404" ]; then
                 echo "Creating kafka-oauth-secret-shapes..."
-                curl -v -H "Content-Type: application/json" \
+                curl -H "Content-Type: application/json" \
                   -H "Authorization: Bearer ${ACCESS_TOKEN}" \
                   -X POST ${CMF_URL}/secrets \
                   -d @/config/secret/secret.json
@@ -67,25 +67,25 @@ spec:
               fi
 
               echo "Creating shapes-env secret mapping..."
-              curl -v -H "Content-Type: application/json" \
+              curl -H "Content-Type: application/json" \
                 -H "Authorization: Bearer ${ACCESS_TOKEN}" \
                 -X POST ${CMF_URL}/environments/shapes-env/secret-mappings \
                 -d @/config/secret-mapping/secret-mapping.json || true
 
               echo "Creating shapes-catalog..."
-              curl -v -H "Content-Type: application/json" \
+              curl -H "Content-Type: application/json" \
                 -H "Authorization: Bearer ${ACCESS_TOKEN}" \
                 -X POST ${CMF_URL}/catalogs/kafka \
                 -d @/config/catalog/catalog.json || true
 
               echo "Creating shapes-database in shapes-catalog..."
-              curl -v -H "Content-Type: application/json" \
+              curl -H "Content-Type: application/json" \
                 -H "Authorization: Bearer ${ACCESS_TOKEN}" \
                 -X POST ${CMF_URL}/catalogs/kafka/shapes-catalog/databases \
                 -d @/config/database/database.json || true
 
               echo "Creating shapes-pool in shapes-env..."
-              curl -v -H "Content-Type: application/json" \
+              curl -H "Content-Type: application/json" \
                 -H "Authorization: Bearer ${ACCESS_TOKEN}" \
                 -X POST ${CMF_URL}/environments/shapes-env/compute-pools \
                 -d @/config/pool/compute-pool.json || true
@@ -176,7 +176,7 @@ spec:
 
               if [ "${SECRET_EXISTS}" = "404" ]; then
                 echo "Creating kafka-oauth-secret-colors..."
-                curl -v -H "Content-Type: application/json" \
+                curl -H "Content-Type: application/json" \
                   -H "Authorization: Bearer ${ACCESS_TOKEN}" \
                   -X POST ${CMF_URL}/secrets \
                   -d @/config/secret/secret.json
@@ -185,25 +185,25 @@ spec:
               fi
 
               echo "Creating colors-env secret mapping..."
-              curl -v -H "Content-Type: application/json" \
+              curl -H "Content-Type: application/json" \
                 -H "Authorization: Bearer ${ACCESS_TOKEN}" \
                 -X POST ${CMF_URL}/environments/colors-env/secret-mappings \
                 -d @/config/secret-mapping/secret-mapping.json || true
 
               echo "Creating colors-catalog..."
-              curl -v -H "Content-Type: application/json" \
+              curl -H "Content-Type: application/json" \
                 -H "Authorization: Bearer ${ACCESS_TOKEN}" \
                 -X POST ${CMF_URL}/catalogs/kafka \
                 -d @/config/catalog/catalog.json || true
 
               echo "Creating colors-database in colors-catalog..."
-              curl -v -H "Content-Type: application/json" \
+              curl -H "Content-Type: application/json" \
                 -H "Authorization: Bearer ${ACCESS_TOKEN}" \
                 -X POST ${CMF_URL}/catalogs/kafka/colors-catalog/databases \
                 -d @/config/database/database.json || true
 
               echo "Creating colors-pool in colors-env..."
-              curl -v -H "Content-Type: application/json" \
+              curl -H "Content-Type: application/json" \
                 -H "Authorization: Bearer ${ACCESS_TOKEN}" \
                 -X POST ${CMF_URL}/environments/colors-env/compute-pools \
                 -d @/config/pool/compute-pool.json || true
