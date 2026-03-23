@@ -1,0 +1,37 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: flink-sql-sample-queries
+  namespace: flink
+data:
+  01-inspect-users.sql: |
+    -- Inspect user records from the datagen connector
+    SELECT * FROM `kafka-cat`.`main-kafka-cluster`.`users` LIMIT 10;
+  02-inspect-orders.sql: |
+    -- Inspect order records from the datagen connector
+    SELECT * FROM `kafka-cat`.`main-kafka-cluster`.`orders` LIMIT 10;
+  03-inspect-clickstream.sql: |
+    -- Inspect clickstream events from the datagen connector
+    SELECT * FROM `kafka-cat`.`main-kafka-cluster`.`clickstream` LIMIT 10;
+  04-users-by-region.sql: |
+    -- Count users by region
+    SELECT region, COUNT(*) as user_count
+    FROM `kafka-cat`.`main-kafka-cluster`.`users`
+    GROUP BY region;
+  05-spend-per-user.sql: |
+    -- Total spend per user
+    SELECT user_id, SUM(amount) as total_spend
+    FROM `kafka-cat`.`main-kafka-cluster`.`orders`
+    GROUP BY user_id;
+  06-popular-pages.sql: |
+    -- Most visited pages
+    SELECT page_url, COUNT(*) as visit_count
+    FROM `kafka-cat`.`main-kafka-cluster`.`clickstream`
+    GROUP BY page_url;
+  07-inspect-enriched-orders.sql: |
+    -- Verify enriched orders output (produced by Flink SQL join job)
+    SELECT * FROM `kafka-cat`.`main-kafka-cluster`.`enriched-orders` LIMIT 10;
+  08-inspect-user-activity.sql: |
+    -- Verify user activity output (produced by Flink SQL join job)
+    SELECT * FROM `kafka-cat`.`main-kafka-cluster`.`user-activity` LIMIT 10;
