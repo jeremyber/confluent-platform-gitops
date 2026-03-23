@@ -67,8 +67,8 @@ spec:
     type: rbac
     superUsers:
       - User:admin@osow.ski
-      - User:kafka
       - User:cmf
+      - User:kafka
 
   # ==============================================================================
   # MDS (METADATA SERVICE) - RBAC and SSO/OIDC configuration
@@ -165,5 +165,5 @@ spec:
     # ==============================================================================
     server:
       # Enable CLI SSO using OAuth device grant flow (for confluent login)
-      # Uses external HTTPS URL for user-facing browser redirects
-      - confluent.oidc.idp.device.authorization.endpoint.uri=https://keycloak.flink-demo-rbac.confluentdemo.local/realms/confluent/protocol/openid-connect/auth/device
+      # Uses internal HTTP URL - MDS needs to reach Keycloak from within the cluster
+      - confluent.oidc.idp.device.authorization.endpoint.uri=http://keycloak.keycloak.svc.cluster.local:8080/realms/confluent/protocol/openid-connect/auth/device
