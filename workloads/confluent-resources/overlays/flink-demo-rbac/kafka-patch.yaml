@@ -158,3 +158,10 @@ spec:
       - "-Dorg.apache.kafka.sasl.oauthbearer.allowed.urls=http://keycloak.keycloak.svc.cluster.local:8080/realms/confluent,http://keycloak.keycloak.svc.cluster.local:8080/realms/confluent/protocol/openid-connect/certs,http://keycloak.keycloak.svc.cluster.local:8080/realms/confluent/protocol/openid-connect/token,https://keycloak.flink-demo-rbac.confluentdemo.local/realms/confluent,https://keycloak.flink-demo-rbac.confluentdemo.local/realms/confluent/protocol/openid-connect/certs,https://keycloak.flink-demo-rbac.confluentdemo.local/realms/confluent/protocol/openid-connect/token"
       # JWKS endpoint refresh interval
       - "-Dorg.apache.kafka.common.security.oauthbearer.OAuthBearerLoginCallbackHandler.JWKS_ENDPOINT_REFRESH_MS=3600000"
+
+    # ==============================================================================
+    # SERVER CONFIGURATION - MDS SSO device grant flow for CLI authentication
+    # ==============================================================================
+    server:
+      # Enable CLI SSO using OAuth device grant flow (for confluent login)
+      - confluent.oidc.idp.device.authorization.endpoint.uri=http://keycloak.keycloak.svc.cluster.local:8080/realms/confluent/protocol/openid-connect/auth/device
