@@ -51,19 +51,19 @@ spec:
 
               echo "Token obtained successfully"
 
-              echo "Checking if kafka-oauth-secret exists..."
+              echo "Checking if kafka-oauth-secret-shapes exists..."
               SECRET_EXISTS=$(curl -s -o /dev/null -w "%{http_code}" \
                 -H "Authorization: Bearer ${ACCESS_TOKEN}" \
-                -X GET ${CMF_URL}/secrets/kafka-oauth-secret)
+                -X GET ${CMF_URL}/secrets/kafka-oauth-secret-shapes)
 
               if [ "${SECRET_EXISTS}" = "404" ]; then
-                echo "Creating kafka-oauth-secret..."
+                echo "Creating kafka-oauth-secret-shapes..."
                 curl -v -H "Content-Type: application/json" \
                   -H "Authorization: Bearer ${ACCESS_TOKEN}" \
                   -X POST ${CMF_URL}/secrets \
                   -d @/config/secret/secret.json
               else
-                echo "kafka-oauth-secret already exists (HTTP ${SECRET_EXISTS})"
+                echo "kafka-oauth-secret-shapes already exists (HTTP ${SECRET_EXISTS})"
               fi
 
               echo "Creating shapes-env secret mapping..."
@@ -169,19 +169,19 @@ spec:
 
               echo "Token obtained successfully"
 
-              echo "Checking if kafka-oauth-secret exists..."
+              echo "Checking if kafka-oauth-secret-colors exists..."
               SECRET_EXISTS=$(curl -s -o /dev/null -w "%{http_code}" \
                 -H "Authorization: Bearer ${ACCESS_TOKEN}" \
-                -X GET ${CMF_URL}/secrets/kafka-oauth-secret)
+                -X GET ${CMF_URL}/secrets/kafka-oauth-secret-colors)
 
               if [ "${SECRET_EXISTS}" = "404" ]; then
-                echo "Creating kafka-oauth-secret..."
+                echo "Creating kafka-oauth-secret-colors..."
                 curl -v -H "Content-Type: application/json" \
                   -H "Authorization: Bearer ${ACCESS_TOKEN}" \
                   -X POST ${CMF_URL}/secrets \
                   -d @/config/secret/secret.json
               else
-                echo "kafka-oauth-secret already exists (HTTP ${SECRET_EXISTS})"
+                echo "kafka-oauth-secret-colors already exists (HTTP ${SECRET_EXISTS})"
               fi
 
               echo "Creating colors-env secret mapping..."

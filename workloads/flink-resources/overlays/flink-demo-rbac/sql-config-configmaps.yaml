@@ -43,7 +43,7 @@ data:
           "connectionConfig": {
             "bootstrap.servers": "kafka.kafka.svc.cluster.local:9071"
           },
-          "connectionSecretId": "kafka-conn-secret-id"
+          "connectionSecretId": "kafka-conn-secret-id-shapes"
         },
         "alterEnvironments": [
           "shapes-env"
@@ -164,7 +164,7 @@ data:
           "connectionConfig": {
             "bootstrap.servers": "kafka.kafka.svc.cluster.local:9071"
           },
-          "connectionSecretId": "kafka-conn-secret-id"
+          "connectionSecretId": "kafka-conn-secret-id-colors"
         },
         "alterEnvironments": [
           "colors-env"
