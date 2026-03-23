@@ -5,6 +5,9 @@ kind: Kustomization
 resources:
   - topics.yaml
   - schemas.yaml
+  - connectors.yaml
   - cmf-config-configmap.yaml
   - cmf-init-job.yaml
   - cmf-compute-pool-job.yaml
+  - flink-sql-jobs.yaml
+  - sample-queries-configmap.yaml
