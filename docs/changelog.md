@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- Evolve `cp-flink-sql-sandbox` into e-commerce demo with datagen connectors, Flink SQL join jobs, sample queries, and CMF autoscaling
+
 ## [0.5.2] - 2026-03-19
 
 ## [0.5.1] - 2026-03-18
