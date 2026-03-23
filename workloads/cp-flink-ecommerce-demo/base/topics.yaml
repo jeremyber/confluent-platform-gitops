@@ -3,6 +3,7 @@ apiVersion: platform.confluent.io/v1beta1
 kind: KafkaTopic
 metadata:
   name: users
+  namespace: kafka
   annotations:
     argocd.argoproj.io/sync-wave: "30"
 spec:
@@ -18,6 +19,7 @@ apiVersion: platform.confluent.io/v1beta1
 kind: KafkaTopic
 metadata:
   name: orders
+  namespace: kafka
   annotations:
     argocd.argoproj.io/sync-wave: "30"
 spec:
@@ -33,6 +35,7 @@ apiVersion: platform.confluent.io/v1beta1
 kind: KafkaTopic
 metadata:
   name: clickstream
+  namespace: kafka
   annotations:
     argocd.argoproj.io/sync-wave: "30"
 spec:
@@ -48,6 +51,7 @@ apiVersion: platform.confluent.io/v1beta1
 kind: KafkaTopic
 metadata:
   name: enriched-orders
+  namespace: kafka
   annotations:
     argocd.argoproj.io/sync-wave: "30"
 spec:
@@ -63,6 +67,7 @@ apiVersion: platform.confluent.io/v1beta1
 kind: KafkaTopic
 metadata:
   name: user-activity
+  namespace: kafka
   annotations:
     argocd.argoproj.io/sync-wave: "30"
 spec:
