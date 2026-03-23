@@ -75,14 +75,7 @@ data:
             "execution.checkpointing.max-concurrent-checkpoints": "1",
             "high-availability.type": "kubernetes",
             "high-availability.storageDir": "s3://warehouse/",
-            "state.checkpoints.num-retained": "10",
-            "kubernetes.operator.job.autoscaler.enabled": "true",
-            "kubernetes.operator.job.autoscaler.metrics.window": "3m",
-            "kubernetes.operator.job.autoscaler.stabilization.interval": "1m",
-            "kubernetes.operator.job.autoscaler.target.utilization": "0.7",
-            "kubernetes.operator.job.autoscaler.scale-down.max-factor": "0.5",
-            "kubernetes.operator.job.autoscaler.scale-up.max-factor": "2.0",
-            "table.exec.state.ttl": "1h"
+            "state.checkpoints.num-retained": "10"
           },
           "podTemplate": {
             "spec": {
@@ -100,9 +93,6 @@ data:
             }
           },
           "taskManager": {
-            "replicas": 1,
-            "minReplicas": 1,
-            "maxReplicas": 5,
             "resource": {
               "cpu": 1.0,
               "memory": "1700m"
