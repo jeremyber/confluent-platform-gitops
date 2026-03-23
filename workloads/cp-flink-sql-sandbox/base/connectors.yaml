@@ -1,0 +1,66 @@
+---
+apiVersion: platform.confluent.io/v1beta1
+kind: Connector
+metadata:
+  name: datagen-users
+  namespace: kafka
+  annotations:
+    argocd.argoproj.io/sync-wave: "36"
+spec:
+  class: io.confluent.kafka.connect.datagen.DatagenConnector
+  taskMax: 1
+  connectClusterRef:
+    name: connect
+    namespace: kafka
+  configs:
+    kafka.topic: users
+    quickstart: users
+    max.interval: "10"
+    iterations: "-1"
+    key.converter: org.apache.kafka.connect.storage.StringConverter
+    value.converter: io.confluent.connect.avro.AvroConverter
+    value.converter.schema.registry.url: "http://schemaregistry.kafka.svc.cluster.local:8081"
+---
+apiVersion: platform.confluent.io/v1beta1
+kind: Connector
+metadata:
+  name: datagen-orders
+  namespace: kafka
+  annotations:
+    argocd.argoproj.io/sync-wave: "36"
+spec:
+  class: io.confluent.kafka.connect.datagen.DatagenConnector
+  taskMax: 1
+  connectClusterRef:
+    name: connect
+    namespace: kafka
+  configs:
+    kafka.topic: orders
+    quickstart: orders
+    max.interval: "10"
+    iterations: "-1"
+    key.converter: org.apache.kafka.connect.storage.StringConverter
+    value.converter: io.confluent.connect.avro.AvroConverter
+    value.converter.schema.registry.url: "http://schemaregistry.kafka.svc.cluster.local:8081"
+---
+apiVersion: platform.confluent.io/v1beta1
+kind: Connector
+metadata:
+  name: datagen-clickstream
+  namespace: kafka
+  annotations:
+    argocd.argoproj.io/sync-wave: "36"
+spec:
+  class: io.confluent.kafka.connect.datagen.DatagenConnector
+  taskMax: 1
+  connectClusterRef:
+    name: connect
+    namespace: kafka
+  configs:
+    kafka.topic: clickstream
+    quickstart: clickstream
+    max.interval: "10"
+    iterations: "-1"
+    key.converter: org.apache.kafka.connect.storage.StringConverter
+    value.converter: io.confluent.connect.avro.AvroConverter
+    value.converter.schema.registry.url: "http://schemaregistry.kafka.svc.cluster.local:8081"
