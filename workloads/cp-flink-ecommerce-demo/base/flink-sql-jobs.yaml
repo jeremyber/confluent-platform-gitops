@@ -5,11 +5,41 @@ metadata:
   name: flink-sql-statements
   namespace: flink
 data:
+  create-datagen-users.sql: |
+    CREATE TABLE IF NOT EXISTS `_datagen_users` (
+      `seq` INT
+    ) WITH (
+      'connector' = 'datagen',
+      'rows-per-second' = '10',
+      'fields.seq.kind' = 'sequence',
+      'fields.seq.start' = '1',
+      'fields.seq.end' = '2147483647'
+    )
+  create-datagen-orders.sql: |
+    CREATE TABLE IF NOT EXISTS `_datagen_orders` (
+      `seq` INT
+    ) WITH (
+      'connector' = 'datagen',
+      'rows-per-second' = '100',
+      'fields.seq.kind' = 'random',
+      'fields.seq.min' = '1',
+      'fields.seq.max' = '1000000'
+    )
+  create-datagen-clickstream.sql: |
+    CREATE TABLE IF NOT EXISTS `_datagen_clickstream` (
+      `seq` INT
+    ) WITH (
+      'connector' = 'datagen',
+      'rows-per-second' = '100',
+      'fields.seq.kind' = 'random',
+      'fields.seq.min' = '1',
+      'fields.seq.max' = '1000000'
+    )
   datagen-users.sql: |
     INSERT INTO `kafka-cat`.`main-kafka-cluster`.`users`
     SELECT
-      CONCAT('user-', CAST(MOD(user_seq, 1000) + 1 AS STRING)) AS `user_id`,
-      CASE MOD(user_seq, 20)
+      CONCAT('user-', CAST(MOD(`seq`, 1000) + 1 AS STRING)) AS `user_id`,
+      CASE MOD(`seq`, 20)
         WHEN 0 THEN 'Alice Johnson'
         WHEN 1 THEN 'Bob Smith'
         WHEN 2 THEN 'Carol Williams'
@@ -32,7 +62,7 @@ data:
         ELSE 'Tina Rodriguez'
       END AS `name`,
       CONCAT(
-        LOWER(CASE MOD(user_seq, 20)
+        LOWER(CASE MOD(`seq`, 20)
           WHEN 0 THEN 'alice.johnson'
           WHEN 1 THEN 'bob.smith'
           WHEN 2 THEN 'carol.williams'
@@ -54,32 +84,25 @@ data:
           WHEN 18 THEN 'sam.clark'
           ELSE 'tina.rodriguez'
         END),
-        CASE MOD(user_seq, 3)
+        CASE MOD(`seq`, 3)
           WHEN 0 THEN '@example.com'
           WHEN 1 THEN '@acme.io'
           ELSE '@testmail.org'
         END
       ) AS `email`,
-      CASE MOD(user_seq, 5)
+      CASE MOD(`seq`, 5)
         WHEN 0 THEN 'US-East'
         WHEN 1 THEN 'US-West'
         WHEN 2 THEN 'EU-West'
         WHEN 3 THEN 'EU-Central'
         ELSE 'APAC'
       END AS `region`,
-      `ts` AS `registered_at`
-    FROM (
-      SELECT
-        *,
-        PROCTIME() AS `ts`
-      FROM TABLE(GENERATOR(RATE => 10))
-    ) AS src
-    CROSS JOIN UNNEST(SEQUENCE(1, 10)) AS T(user_seq_offset)
-    CROSS JOIN (SELECT CAST(FLOOR(RAND() * 1000000) AS INT) AS user_seq FROM (VALUES(1))) AS r
+      PROCTIME() AS `registered_at`
+    FROM `_datagen_users`
   datagen-orders.sql: |
     INSERT INTO `kafka-cat`.`main-kafka-cluster`.`orders`
     SELECT
-      CONCAT('order-', CAST(CAST(FLOOR(RAND() * 1000000) AS INT) AS STRING), '-', CAST(CURRENT_TIMESTAMP AS STRING)) AS `order_id`,
+      CONCAT('order-', CAST(`seq` AS STRING), '-', CAST(CURRENT_TIMESTAMP AS STRING)) AS `order_id`,
       CONCAT('user-', CAST(CAST(FLOOR(RAND() * 1000) + 1 AS INT) AS STRING)) AS `user_id`,
       CASE CAST(FLOOR(RAND() * 15) AS INT)
         WHEN 0 THEN 'Wireless Headphones'
@@ -105,7 +128,7 @@ data:
         ELSE 'GBP'
       END AS `currency`,
       PROCTIME() AS `order_time`
-    FROM TABLE(GENERATOR(RATE => 100))
+    FROM `_datagen_orders`
   datagen-clickstream.sql: |
     INSERT INTO `kafka-cat`.`main-kafka-cluster`.`clickstream`
     SELECT
@@ -133,7 +156,7 @@ data:
         ELSE 'purchase'
       END AS `action`,
       PROCTIME() AS `event_time`
-    FROM TABLE(GENERATOR(RATE => 100))
+    FROM `_datagen_clickstream`
   enriched-orders.sql: |
     INSERT INTO `kafka-cat`.`main-kafka-cluster`.`enriched-orders`
     SELECT
@@ -291,7 +314,15 @@ spec:
               --url ${CMF_URL}
           }
 
-          # Submit datagen jobs first to start producing data
+          # Step 1: Create datagen source tables
+          for job in create-datagen-users create-datagen-orders create-datagen-clickstream; do
+            submit_statement "${job}" "/sql/${job}.sql"
+            sleep 2
+          done
+
+          echo "Datagen source tables created. Submitting INSERT jobs..."
+
+          # Step 2: Submit datagen INSERT jobs to start producing data
           for job in datagen-users datagen-orders datagen-clickstream; do
             submit_statement "${job}" "/sql/${job}.sql"
             sleep 2
@@ -300,7 +331,7 @@ spec:
           echo "Waiting 10s for data to start flowing..."
           sleep 10
 
-          # Submit join/aggregation jobs
+          # Step 3: Submit join/aggregation jobs
           for job in enriched-orders user-activity; do
             submit_statement "${job}" "/sql/${job}.sql"
             sleep 2
