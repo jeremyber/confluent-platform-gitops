@@ -38,6 +38,13 @@ spec:
       # Enable CMF (Confluent Manager for Apache Flink)
       - confluent.controlcenter.cmf.enable=true
       - confluent.controlcenter.cmf.url=http://cmf-service.operator.svc.cluster.local:80
+      # Schema Registry OAuth bearer authentication (required for C3 runtime access)
+      # Note: The CRD-level dependencies.schemaRegistry.authentication configures CFK,
+      #       but C3 application needs explicit bearer.auth.* properties to connect
+      - confluent.controlcenter.schema.registry.bearer.auth.credentials.source=OAUTHBEARER
+      - confluent.controlcenter.schema.registry.bearer.auth.issuer.endpoint.url=http://keycloak.keycloak.svc.cluster.local:8080/realms/confluent/protocol/openid-connect/token
+      - confluent.controlcenter.schema.registry.bearer.auth.client.id=controlcenter
+      - confluent.controlcenter.schema.registry.bearer.auth.client.secret=controlcenter-secret
 
   # ==============================================================================
   # AUTHORIZATION - RBAC
