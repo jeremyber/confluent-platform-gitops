@@ -12,7 +12,8 @@ spec:
       plugins:
         locationType: confluentHub
         confluentHub:
-          - name: confluentinc/kafka-connect-datagen
+          - name: kafka-connect-datagen
+            owner: confluentinc
             version: "0.6.6"
   podTemplate:
     resources:
