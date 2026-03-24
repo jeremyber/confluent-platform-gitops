@@ -14,8 +14,8 @@ data:
       "resetPasswordAllowed": false,
       "rememberMe": true,
       "accessTokenLifespan": 604800,
-      "ssoSessionIdleTimeout": 7200,
-      "ssoSessionMaxLifespan": 36000,
+      "ssoSessionIdleTimeout": 604800,
+      "ssoSessionMaxLifespan": 604800,
       "groups": [
         {
           "name": "admins",
