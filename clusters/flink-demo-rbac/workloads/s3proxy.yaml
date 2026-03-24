@@ -4,10 +4,12 @@ kind: Application
 metadata:
   name: s3proxy
   namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
   annotations:
-    argocd.argoproj.io/sync-wave: "115"
+    argocd.argoproj.io/sync-wave: "106"
 spec:
-  project: default
+  project: workloads
   source:
     repoURL: https://github.com/osowski/confluent-platform-gitops.git
     targetRevision: HEAD
@@ -16,11 +18,8 @@ spec:
     server: https://kubernetes.default.svc
     namespace: flink
   syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
     syncOptions:
-      - CreateNamespace=true
+      - CreateNamespace=false
     retry:
       limit: 5
       backoff:
