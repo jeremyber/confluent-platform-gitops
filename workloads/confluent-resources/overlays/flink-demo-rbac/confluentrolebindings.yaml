@@ -411,6 +411,44 @@ spec:
   kafkaRestClassRef:
     name: default
 ---
+# sa-shapes-flink service account - ResourceOwner on shapes-* subjects
+# Required for Flink SQL table auto-discovery and Avro deserialization
+apiVersion: platform.confluent.io/v1beta1
+kind: ConfluentRolebinding
+metadata:
+  name: sa-shapes-flink-subjects-owner
+  namespace: kafka
+spec:
+  principal:
+    type: user
+    name: sa-shapes-flink
+  role: ResourceOwner
+  clustersScopeByIds:
+    schemaRegistryClusterId: id_schemaregistry_kafka
+  resourcePatterns:
+    - patternType: PREFIXED
+      name: shapes-
+      resourceType: Subject
+---
+# sa-colors-flink service account - ResourceOwner on colors-* subjects
+# Required for Flink SQL table auto-discovery and Avro deserialization
+apiVersion: platform.confluent.io/v1beta1
+kind: ConfluentRolebinding
+metadata:
+  name: sa-colors-flink-subjects-owner
+  namespace: kafka
+spec:
+  principal:
+    type: user
+    name: sa-colors-flink
+  role: ResourceOwner
+  clustersScopeByIds:
+    schemaRegistryClusterId: id_schemaregistry_kafka
+  resourcePatterns:
+    - patternType: PREFIXED
+      name: colors-
+      resourceType: Subject
+---
 # ==============================================================================
 # SCHEMA REGISTRY RBAC - Schema Registry operator permissions
 # ==============================================================================
