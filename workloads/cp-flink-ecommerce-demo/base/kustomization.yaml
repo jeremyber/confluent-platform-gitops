@@ -7,5 +7,6 @@ resources:
   - schemas.yaml
   - cmf-config-configmap.yaml
   - cmf-compute-pool-job.yaml
+  - datagen-producer.yaml
   - flink-sql-jobs.yaml
   - sample-queries-configmap.yaml

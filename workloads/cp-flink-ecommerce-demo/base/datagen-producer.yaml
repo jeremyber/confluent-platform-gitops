@@ -1,0 +1,66 @@
+---
+apiVersion: platform.confluent.io/v1beta1
+kind: Connector
+metadata:
+  name: datagen-users
+  namespace: kafka
+  annotations:
+    argocd.argoproj.io/sync-wave: "40"
+spec:
+  class: io.confluent.kafka.connect.datagen.DatagenConnector
+  taskMax: 1
+  connectClusterRef:
+    name: connect
+    namespace: kafka
+  configs:
+    kafka.topic: "users"
+    max.interval: "1000"
+    iterations: "-1"
+    schema.string: '{"type":"record","name":"User","namespace":"com.example.demo","fields":[{"name":"user_id","type":"string","arg.properties":{"regex":"user-[1-9][0-9]{0,2}"}},{"name":"name","type":"string","arg.properties":{"options":["Alice Johnson","Bob Smith","Carol Williams","David Brown","Emma Davis","Frank Miller","Grace Wilson","Henry Moore","Iris Taylor","Jack Anderson","Karen Thomas","Leo Jackson","Mia White","Noah Harris","Olivia Martin","Paul Garcia","Quinn Martinez","Rachel Robinson","Sam Clark","Tina Rodriguez"]}},{"name":"email","type":"string","arg.properties":{"regex":"[a-z]{4,8}\\.[a-z]{4,8}@(example\\.com|acme\\.io|testmail\\.org)"}},{"name":"region","type":"string","arg.properties":{"options":["US-East","US-West","EU-West","EU-Central","APAC"]}},{"name":"registered_at","type":{"type":"long","logicalType":"timestamp-millis"}}]}'
+    key.converter: "org.apache.kafka.connect.storage.StringConverter"
+    value.converter: "io.confluent.connect.avro.AvroConverter"
+    value.converter.schema.registry.url: "http://schemaregistry.kafka.svc.cluster.local:8081"
+---
+apiVersion: platform.confluent.io/v1beta1
+kind: Connector
+metadata:
+  name: datagen-orders
+  namespace: kafka
+  annotations:
+    argocd.argoproj.io/sync-wave: "40"
+spec:
+  class: io.confluent.kafka.connect.datagen.DatagenConnector
+  taskMax: 1
+  connectClusterRef:
+    name: connect
+    namespace: kafka
+  configs:
+    kafka.topic: "orders"
+    max.interval: "500"
+    iterations: "-1"
+    schema.string: '{"type":"record","name":"Order","namespace":"com.example.demo","fields":[{"name":"order_id","type":"string","arg.properties":{"regex":"order-[0-9]{5,8}"}},{"name":"user_id","type":"string","arg.properties":{"regex":"user-[1-9][0-9]{0,2}"}},{"name":"product","type":"string","arg.properties":{"options":["Wireless Headphones","Laptop Stand","Mechanical Keyboard","USB-C Hub","Webcam HD Pro","Monitor 27 inch","Mouse Pad XL","Phone Case","Bluetooth Speaker","Desk Lamp","Cable Organizer","Screen Protector","Portable Charger","Smart Watch","Tablet Sleeve"]}},{"name":"amount","type":"double","arg.properties":{"range":{"min":5,"max":500}}},{"name":"currency","type":"string","arg.properties":{"options":["USD","EUR","GBP"]}},{"name":"order_time","type":{"type":"long","logicalType":"timestamp-millis"}}]}'
+    key.converter: "org.apache.kafka.connect.storage.StringConverter"
+    value.converter: "io.confluent.connect.avro.AvroConverter"
+    value.converter.schema.registry.url: "http://schemaregistry.kafka.svc.cluster.local:8081"
+---
+apiVersion: platform.confluent.io/v1beta1
+kind: Connector
+metadata:
+  name: datagen-clickstream
+  namespace: kafka
+  annotations:
+    argocd.argoproj.io/sync-wave: "40"
+spec:
+  class: io.confluent.kafka.connect.datagen.DatagenConnector
+  taskMax: 1
+  connectClusterRef:
+    name: connect
+    namespace: kafka
+  configs:
+    kafka.topic: "clickstream"
+    max.interval: "500"
+    iterations: "-1"
+    schema.string: '{"type":"record","name":"ClickEvent","namespace":"com.example.demo","fields":[{"name":"session_id","type":"string","arg.properties":{"regex":"session-[0-9]{4,6}"}},{"name":"user_id","type":"string","arg.properties":{"regex":"user-[1-9][0-9]{0,2}"}},{"name":"page_url","type":"string","arg.properties":{"options":["/products/headphones","/products/laptop-stand","/products/keyboard","/cart","/checkout","/account/orders","/search?q=electronics","/categories/accessories","/products/monitor","/deals","/account/wishlist","/homepage"]}},{"name":"action","type":"string","arg.properties":{"options":["view","click","add_to_cart","search","purchase"]}},{"name":"event_time","type":{"type":"long","logicalType":"timestamp-millis"}}]}'
+    key.converter: "org.apache.kafka.connect.storage.StringConverter"
+    value.converter: "io.confluent.connect.avro.AvroConverter"
+    value.converter.schema.registry.url: "http://schemaregistry.kafka.svc.cluster.local:8081"
