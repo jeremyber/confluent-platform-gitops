@@ -225,6 +225,18 @@ spec:
             sleep 5
           done
           echo "CMF is ready!"
+      - name: wait-for-catalog
+        image: curlimages/curl:latest
+        command:
+        - /bin/sh
+        - -c
+        - |
+          echo "Waiting for kafka-cat catalog to be available..."
+          until curl -sf http://cmf-service.operator.svc.cluster.local:80/cmf/api/v1/catalogs/kafka/kafka-cat/databases 2>/dev/null | grep -q "main-kafka-cluster"; do
+            echo "Catalog/database not ready yet, waiting..."
+            sleep 10
+          done
+          echo "Catalog and database are ready!"
       - name: wait-for-compute-pool
         image: confluentinc/confluent-cli:4.53.0
         env:
@@ -255,16 +267,33 @@ spec:
         - |
           set -e
 
-          # Submit datagen jobs first to start producing data
-          for job in datagen-users datagen-orders datagen-clickstream; do
-            echo "Submitting ${job} SQL job..."
-            confluent flink statement create ${job} \
-              --sql "$(cat /sql/${job}.sql)" \
+          submit_statement() {
+            local name=$1
+            local sql_file=$2
+
+            # Delete any previously failed statement with the same name
+            echo "Checking for existing statement ${name}..."
+            if confluent flink statement list --environment env1 --url ${CMF_URL} 2>/dev/null | grep -q "${name}"; then
+              echo "Deleting existing statement ${name}..."
+              confluent flink statement delete ${name} \
+                --environment env1 \
+                --url ${CMF_URL} --force 2>/dev/null || true
+              sleep 2
+            fi
+
+            echo "Submitting ${name} SQL job..."
+            confluent flink statement create ${name} \
+              --sql "$(cat ${sql_file})" \
               --compute-pool ecommerce-pool \
               --environment env1 \
               --database main-kafka-cluster \
               --catalog kafka-cat \
-              --url ${CMF_URL} || echo "Statement ${job} may already exist"
+              --url ${CMF_URL}
+          }
+
+          # Submit datagen jobs first to start producing data
+          for job in datagen-users datagen-orders datagen-clickstream; do
+            submit_statement "${job}" "/sql/${job}.sql"
             sleep 2
           done
 
@@ -273,14 +302,7 @@ spec:
 
           # Submit join/aggregation jobs
           for job in enriched-orders user-activity; do
-            echo "Submitting ${job} SQL job..."
-            confluent flink statement create ${job} \
-              --sql "$(cat /sql/${job}.sql)" \
-              --compute-pool ecommerce-pool \
-              --environment env1 \
-              --database main-kafka-cluster \
-              --catalog kafka-cat \
-              --url ${CMF_URL} || echo "Statement ${job} may already exist"
+            submit_statement "${job}" "/sql/${job}.sql"
             sleep 2
           done
 
