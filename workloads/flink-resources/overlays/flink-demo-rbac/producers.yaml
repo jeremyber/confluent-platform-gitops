@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
         - name: producer
-          image: quay.io/osowski/kafka-producer:latest-rbac
+          image: quay.io/osowski/kafka-producer:v0.2.0-avro
           imagePullPolicy: Always
           env:
             # Kafka connection (internal OAuth listener)
@@ -64,6 +64,11 @@ spec:
                   name: shapes-producer-oauth
                   key: client-secret
 
+            # Schema Registry configuration
+            # Producer automatically reuses Kafka OAuth credentials for Schema Registry authentication
+            - name: SCHEMA_REGISTRY_URL
+              value: "http://schemaregistry.kafka.svc.cluster.local:8081"
+
           resources:
             requests:
               cpu: 100m
@@ -94,7 +99,7 @@ spec:
     spec:
       containers:
         - name: producer
-          image: quay.io/osowski/kafka-producer:latest-rbac
+          image: quay.io/osowski/kafka-producer:v0.2.0-avro
           imagePullPolicy: Always
           env:
             # Kafka connection (internal OAuth listener)
@@ -136,6 +141,11 @@ spec:
                 secretKeyRef:
                   name: colors-producer-oauth
                   key: client-secret
+
+            # Schema Registry configuration
+            # Producer automatically reuses Kafka OAuth credentials for Schema Registry authentication
+            - name: SCHEMA_REGISTRY_URL
+              value: "http://schemaregistry.kafka.svc.cluster.local:8081"
 
           resources:
             requests:
