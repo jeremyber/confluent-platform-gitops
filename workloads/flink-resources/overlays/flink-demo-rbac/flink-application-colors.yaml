@@ -83,6 +83,9 @@ spec:
     # OAuth callback handler
     kafka.sasl.login.callback.handler.class: org.apache.kafka.common.security.oauthbearer.OAuthBearerLoginCallbackHandler
 
+    # OAuth token endpoint URL (required for OAuth callback handler)
+    kafka.sasl.oauthbearer.token.endpoint.url: http://keycloak.keycloak.svc.cluster.local:8080/realms/confluent/protocol/openid-connect/token
+
     # Consumer configuration
     kafka.consumer.group.id: colors-autoscaler
     kafka.consumer.auto.offset.reset: earliest
