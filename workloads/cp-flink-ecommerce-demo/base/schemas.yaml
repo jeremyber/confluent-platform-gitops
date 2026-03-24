@@ -2,139 +2,114 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: users-value-avro-schema
+  name: users-value-json-schema
   namespace: flink
 data:
   schema: |
     {
-      "type": "record",
-      "name": "User",
-      "namespace": "com.example.demo",
-      "fields": [
-        {"name": "user_id", "type": "string", "doc": "Unique user identifier"},
-        {"name": "name", "type": "string", "doc": "Full name of the user"},
-        {"name": "email", "type": "string", "doc": "Email address"},
-        {"name": "region", "type": "string", "doc": "Geographic region (e.g., US-East, EU-West)"},
-        {
-          "name": "registered_at",
-          "type": {"type": "long", "logicalType": "timestamp-millis"},
-          "doc": "Registration timestamp in milliseconds since epoch"
-        }
-      ]
+      "type": "object",
+      "properties": {
+        "user_id": {"type": "string"},
+        "name": {"type": "string"},
+        "email": {"type": "string"},
+        "region": {"type": "string"},
+        "registered_at": {"type": "integer"}
+      },
+      "required": ["user_id", "name", "email", "region", "registered_at"]
     }
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: orders-value-avro-schema
+  name: orders-value-json-schema
   namespace: flink
 data:
   schema: |
     {
-      "type": "record",
-      "name": "Order",
-      "namespace": "com.example.demo",
-      "fields": [
-        {"name": "order_id", "type": "string", "doc": "Unique order identifier"},
-        {"name": "user_id", "type": "string", "doc": "User who placed the order"},
-        {"name": "product", "type": "string", "doc": "Product name"},
-        {"name": "amount", "type": "double", "doc": "Order amount in the specified currency"},
-        {"name": "currency", "type": "string", "doc": "Currency code (e.g., USD, EUR)"},
-        {
-          "name": "order_time",
-          "type": {"type": "long", "logicalType": "timestamp-millis"},
-          "doc": "Order timestamp in milliseconds since epoch"
-        }
-      ]
+      "type": "object",
+      "properties": {
+        "order_id": {"type": "string"},
+        "user_id": {"type": "string"},
+        "product": {"type": "string"},
+        "amount": {"type": "number"},
+        "currency": {"type": "string"},
+        "order_time": {"type": "integer"}
+      },
+      "required": ["order_id", "user_id", "product", "amount", "currency", "order_time"]
     }
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: clickstream-value-avro-schema
+  name: clickstream-value-json-schema
   namespace: flink
 data:
   schema: |
     {
-      "type": "record",
-      "name": "ClickEvent",
-      "namespace": "com.example.demo",
-      "fields": [
-        {"name": "session_id", "type": "string", "doc": "Browser session identifier"},
-        {"name": "user_id", "type": "string", "doc": "User performing the action"},
-        {"name": "page_url", "type": "string", "doc": "URL of the page visited"},
-        {"name": "action", "type": "string", "doc": "Action performed (e.g., view, click, add_to_cart)"},
-        {
-          "name": "event_time",
-          "type": {"type": "long", "logicalType": "timestamp-millis"},
-          "doc": "Event timestamp in milliseconds since epoch"
-        }
-      ]
+      "type": "object",
+      "properties": {
+        "session_id": {"type": "string"},
+        "user_id": {"type": "string"},
+        "page_url": {"type": "string"},
+        "action": {"type": "string"},
+        "event_time": {"type": "integer"}
+      },
+      "required": ["session_id", "user_id", "page_url", "action", "event_time"]
     }
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: enriched-orders-value-avro-schema
+  name: enriched-orders-value-json-schema
   namespace: flink
 data:
   schema: |
     {
-      "type": "record",
-      "name": "EnrichedOrder",
-      "namespace": "com.example.demo",
-      "fields": [
-        {"name": "order_id", "type": "string", "doc": "Unique order identifier"},
-        {"name": "user_id", "type": "string", "doc": "User who placed the order"},
-        {"name": "product", "type": "string", "doc": "Product name"},
-        {"name": "amount", "type": "double", "doc": "Order amount"},
-        {"name": "currency", "type": "string", "doc": "Currency code"},
-        {
-          "name": "order_time",
-          "type": {"type": "long", "logicalType": "timestamp-millis"},
-          "doc": "Order timestamp"
-        },
-        {"name": "name", "type": "string", "doc": "User's full name"},
-        {"name": "email", "type": "string", "doc": "User's email address"},
-        {"name": "region", "type": "string", "doc": "User's region"},
-        {"name": "click_count", "type": ["null", "long"], "default": null, "doc": "Number of recent clicks by this user"},
-        {"name": "last_page_url", "type": ["null", "string"], "default": null, "doc": "Last page visited by this user"}
-      ]
+      "type": "object",
+      "properties": {
+        "order_id": {"type": "string"},
+        "user_id": {"type": "string"},
+        "product": {"type": "string"},
+        "amount": {"type": "number"},
+        "currency": {"type": "string"},
+        "order_time": {"type": "integer"},
+        "name": {"type": "string"},
+        "email": {"type": "string"},
+        "region": {"type": "string"},
+        "click_count": {"type": ["integer", "null"]},
+        "last_page_url": {"type": ["string", "null"]}
+      },
+      "required": ["order_id", "user_id", "product", "amount", "currency", "order_time", "name", "email", "region"]
     }
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: user-activity-value-avro-schema
+  name: user-activity-value-json-schema
   namespace: flink
 data:
   schema: |
     {
-      "type": "record",
-      "name": "UserActivity",
-      "namespace": "com.example.demo",
-      "fields": [
-        {"name": "user_id", "type": "string", "doc": "Unique user identifier"},
-        {"name": "name", "type": "string", "doc": "User's full name"},
-        {"name": "email", "type": "string", "doc": "User's email address"},
-        {"name": "region", "type": "string", "doc": "User's region"},
-        {"name": "order_count", "type": ["null", "long"], "default": null, "doc": "Number of orders in the window"},
-        {"name": "total_spend", "type": ["null", "double"], "default": null, "doc": "Total spend in the window"},
-        {"name": "click_count", "type": ["null", "long"], "default": null, "doc": "Number of clicks in the window"},
-        {"name": "unique_pages", "type": ["null", "long"], "default": null, "doc": "Number of unique pages visited"},
-        {
-          "name": "window_start",
-          "type": ["null", {"type": "long", "logicalType": "timestamp-millis"}],
-          "default": null,
-          "doc": "Start of the aggregation window"
-        }
-      ]
+      "type": "object",
+      "properties": {
+        "user_id": {"type": "string"},
+        "name": {"type": "string"},
+        "email": {"type": "string"},
+        "region": {"type": "string"},
+        "order_count": {"type": ["integer", "null"]},
+        "total_spend": {"type": ["number", "null"]},
+        "click_count": {"type": ["integer", "null"]},
+        "unique_pages": {"type": ["integer", "null"]},
+        "window_start": {"type": ["integer", "null"]}
+      },
+      "required": ["user_id", "name", "email", "region"]
     }
 ---
 apiVersion: platform.confluent.io/v1beta1
 kind: Schema
 metadata:
   name: users-value
+  namespace: flink
   annotations:
     argocd.argoproj.io/sync-wave: "35"
 spec:
@@ -142,14 +117,15 @@ spec:
     name: schemaregistry
     namespace: kafka
   data:
-    configRef: users-value-avro-schema
-    format: avro
-  compatibilityLevel: BACKWARD
+    configRef: users-value-json-schema
+    format: json
+  compatibilityLevel: NONE
 ---
 apiVersion: platform.confluent.io/v1beta1
 kind: Schema
 metadata:
   name: orders-value
+  namespace: flink
   annotations:
     argocd.argoproj.io/sync-wave: "35"
 spec:
@@ -157,14 +133,15 @@ spec:
     name: schemaregistry
     namespace: kafka
   data:
-    configRef: orders-value-avro-schema
-    format: avro
-  compatibilityLevel: BACKWARD
+    configRef: orders-value-json-schema
+    format: json
+  compatibilityLevel: NONE
 ---
 apiVersion: platform.confluent.io/v1beta1
 kind: Schema
 metadata:
   name: clickstream-value
+  namespace: flink
   annotations:
     argocd.argoproj.io/sync-wave: "35"
 spec:
@@ -172,14 +149,15 @@ spec:
     name: schemaregistry
     namespace: kafka
   data:
-    configRef: clickstream-value-avro-schema
-    format: avro
-  compatibilityLevel: BACKWARD
+    configRef: clickstream-value-json-schema
+    format: json
+  compatibilityLevel: NONE
 ---
 apiVersion: platform.confluent.io/v1beta1
 kind: Schema
 metadata:
   name: enriched-orders-value
+  namespace: flink
   annotations:
     argocd.argoproj.io/sync-wave: "35"
 spec:
@@ -187,14 +165,15 @@ spec:
     name: schemaregistry
     namespace: kafka
   data:
-    configRef: enriched-orders-value-avro-schema
-    format: avro
-  compatibilityLevel: BACKWARD
+    configRef: enriched-orders-value-json-schema
+    format: json
+  compatibilityLevel: NONE
 ---
 apiVersion: platform.confluent.io/v1beta1
 kind: Schema
 metadata:
   name: user-activity-value
+  namespace: flink
   annotations:
     argocd.argoproj.io/sync-wave: "35"
 spec:
@@ -202,6 +181,6 @@ spec:
     name: schemaregistry
     namespace: kafka
   data:
-    configRef: user-activity-value-avro-schema
-    format: avro
-  compatibilityLevel: BACKWARD
+    configRef: user-activity-value-json-schema
+    format: json
+  compatibilityLevel: NONE

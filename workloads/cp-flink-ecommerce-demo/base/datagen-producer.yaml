@@ -1,66 +1,169 @@
 ---
-apiVersion: platform.confluent.io/v1beta1
-kind: Connector
+apiVersion: v1
+kind: ConfigMap
 metadata:
-  name: datagen-users
+  name: datagen-producer-script
   namespace: kafka
-  annotations:
-    argocd.argoproj.io/sync-wave: "40"
-spec:
-  class: io.confluent.kafka.connect.datagen.DatagenConnector
-  taskMax: 1
-  connectClusterRef:
-    name: connect
-    namespace: kafka
-  configs:
-    kafka.topic: "users"
-    max.interval: "1000"
-    iterations: "-1"
-    schema.string: '{"type":"record","name":"User","namespace":"com.example.demo","fields":[{"name":"user_id","type":"string","arg.properties":{"regex":"user-[1-9][0-9]{0,2}"}},{"name":"name","type":"string","arg.properties":{"options":["Alice Johnson","Bob Smith","Carol Williams","David Brown","Emma Davis","Frank Miller","Grace Wilson","Henry Moore","Iris Taylor","Jack Anderson","Karen Thomas","Leo Jackson","Mia White","Noah Harris","Olivia Martin","Paul Garcia","Quinn Martinez","Rachel Robinson","Sam Clark","Tina Rodriguez"]}},{"name":"email","type":"string","arg.properties":{"regex":"[a-z]{4,8}\\.[a-z]{4,8}@(example\\.com|acme\\.io|testmail\\.org)"}},{"name":"region","type":"string","arg.properties":{"options":["US-East","US-West","EU-West","EU-Central","APAC"]}},{"name":"registered_at","type":{"type":"long","logicalType":"timestamp-millis"}}]}'
-    key.converter: "org.apache.kafka.connect.storage.StringConverter"
-    value.converter: "io.confluent.connect.avro.AvroConverter"
-    value.converter.schema.registry.url: "http://schemaregistry.kafka.svc.cluster.local:8081"
+data:
+  produce.sh: |
+    #!/bin/bash
+    set -e
+
+    BOOTSTRAP="${BOOTSTRAP_SERVERS:-kafka:9071}"
+
+    USERS=("Alice Johnson" "Bob Smith" "Carol Williams" "David Brown" "Emma Davis"
+           "Frank Miller" "Grace Wilson" "Henry Moore" "Iris Taylor" "Jack Anderson"
+           "Karen Thomas" "Leo Jackson" "Mia White" "Noah Harris" "Olivia Martin"
+           "Paul Garcia" "Quinn Martinez" "Rachel Robinson" "Sam Clark" "Tina Rodriguez")
+    REGIONS=("US-East" "US-West" "EU-West" "EU-Central" "APAC")
+    PRODUCTS=("Wireless Headphones" "Laptop Stand" "Mechanical Keyboard" "USB-C Hub"
+              "Webcam HD Pro" "Monitor 27 inch" "Mouse Pad XL" "Phone Case"
+              "Bluetooth Speaker" "Desk Lamp" "Cable Organizer" "Screen Protector"
+              "Portable Charger" "Smart Watch" "Tablet Sleeve")
+    CURRENCIES=("USD" "EUR" "GBP")
+    PAGES=("/products/headphones" "/products/laptop-stand" "/products/keyboard"
+           "/cart" "/checkout" "/account/orders" "/search?q=electronics"
+           "/categories/accessories" "/products/monitor" "/deals"
+           "/account/wishlist" "/homepage")
+    ACTIONS=("view" "click" "add_to_cart" "search" "purchase")
+
+    rand_element() {
+      local arr=("$@")
+      echo "${arr[$((RANDOM % ${#arr[@]}))]}"
+    }
+
+    rand_range() {
+      local min=$1 max=$2
+      echo $(( RANDOM % (max - min + 1) + min ))
+    }
+
+    timestamp_ms() {
+      date +%s000
+    }
+
+    produce_users() {
+      echo "Starting users producer..."
+      while true; do
+        local uid="user-$(rand_range 1 200)"
+        local name=$(rand_element "${USERS[@]}")
+        local region=$(rand_element "${REGIONS[@]}")
+        local domain=$(rand_element "example.com" "acme.io" "testmail.org")
+        local email="${name%% *}.${name##* }@${domain}"
+        email=$(echo "$email" | tr '[:upper:]' '[:lower:]')
+        local ts=$(timestamp_ms)
+        echo "{\"user_id\":\"${uid}\",\"name\":\"${name}\",\"email\":\"${email}\",\"region\":\"${region}\",\"registered_at\":${ts}}"
+        sleep 1
+      done | kafka-console-producer --bootstrap-server "$BOOTSTRAP" --topic users
+    }
+
+    produce_orders() {
+      echo "Starting orders producer..."
+      while true; do
+        local oid="order-$(rand_range 10000 99999999)"
+        local uid="user-$(rand_range 1 200)"
+        local product=$(rand_element "${PRODUCTS[@]}")
+        local amount=$(rand_range 5 500)
+        local cents=$(rand_range 0 99)
+        local currency=$(rand_element "${CURRENCIES[@]}")
+        local ts=$(timestamp_ms)
+        echo "{\"order_id\":\"${oid}\",\"user_id\":\"${uid}\",\"product\":\"${product}\",\"amount\":${amount}.${cents},\"currency\":\"${currency}\",\"order_time\":${ts}}"
+        sleep 0.5
+      done | kafka-console-producer --bootstrap-server "$BOOTSTRAP" --topic orders
+    }
+
+    produce_clickstream() {
+      echo "Starting clickstream producer..."
+      while true; do
+        local sid="session-$(rand_range 1000 999999)"
+        local uid="user-$(rand_range 1 200)"
+        local page=$(rand_element "${PAGES[@]}")
+        local action=$(rand_element "${ACTIONS[@]}")
+        local ts=$(timestamp_ms)
+        echo "{\"session_id\":\"${sid}\",\"user_id\":\"${uid}\",\"page_url\":\"${page}\",\"action\":\"${action}\",\"event_time\":${ts}}"
+        sleep 0.5
+      done | kafka-console-producer --bootstrap-server "$BOOTSTRAP" --topic clickstream
+    }
+
+    case "${TOPIC}" in
+      users)      produce_users ;;
+      orders)     produce_orders ;;
+      clickstream) produce_clickstream ;;
+      *)
+        echo "Unknown TOPIC: ${TOPIC}"
+        exit 1
+        ;;
+    esac
 ---
-apiVersion: platform.confluent.io/v1beta1
-kind: Connector
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: datagen-orders
+  name: datagen-producer
   namespace: kafka
+  labels:
+    app: datagen-producer
   annotations:
     argocd.argoproj.io/sync-wave: "40"
 spec:
-  class: io.confluent.kafka.connect.datagen.DatagenConnector
-  taskMax: 1
-  connectClusterRef:
-    name: connect
-    namespace: kafka
-  configs:
-    kafka.topic: "orders"
-    max.interval: "500"
-    iterations: "-1"
-    schema.string: '{"type":"record","name":"Order","namespace":"com.example.demo","fields":[{"name":"order_id","type":"string","arg.properties":{"regex":"order-[0-9]{5,8}"}},{"name":"user_id","type":"string","arg.properties":{"regex":"user-[1-9][0-9]{0,2}"}},{"name":"product","type":"string","arg.properties":{"options":["Wireless Headphones","Laptop Stand","Mechanical Keyboard","USB-C Hub","Webcam HD Pro","Monitor 27 inch","Mouse Pad XL","Phone Case","Bluetooth Speaker","Desk Lamp","Cable Organizer","Screen Protector","Portable Charger","Smart Watch","Tablet Sleeve"]}},{"name":"amount","type":"double","arg.properties":{"range":{"min":5,"max":500}}},{"name":"currency","type":"string","arg.properties":{"options":["USD","EUR","GBP"]}},{"name":"order_time","type":{"type":"long","logicalType":"timestamp-millis"}}]}'
-    key.converter: "org.apache.kafka.connect.storage.StringConverter"
-    value.converter: "io.confluent.connect.avro.AvroConverter"
-    value.converter.schema.registry.url: "http://schemaregistry.kafka.svc.cluster.local:8081"
----
-apiVersion: platform.confluent.io/v1beta1
-kind: Connector
-metadata:
-  name: datagen-clickstream
-  namespace: kafka
-  annotations:
-    argocd.argoproj.io/sync-wave: "40"
-spec:
-  class: io.confluent.kafka.connect.datagen.DatagenConnector
-  taskMax: 1
-  connectClusterRef:
-    name: connect
-    namespace: kafka
-  configs:
-    kafka.topic: "clickstream"
-    max.interval: "500"
-    iterations: "-1"
-    schema.string: '{"type":"record","name":"ClickEvent","namespace":"com.example.demo","fields":[{"name":"session_id","type":"string","arg.properties":{"regex":"session-[0-9]{4,6}"}},{"name":"user_id","type":"string","arg.properties":{"regex":"user-[1-9][0-9]{0,2}"}},{"name":"page_url","type":"string","arg.properties":{"options":["/products/headphones","/products/laptop-stand","/products/keyboard","/cart","/checkout","/account/orders","/search?q=electronics","/categories/accessories","/products/monitor","/deals","/account/wishlist","/homepage"]}},{"name":"action","type":"string","arg.properties":{"options":["view","click","add_to_cart","search","purchase"]}},{"name":"event_time","type":{"type":"long","logicalType":"timestamp-millis"}}]}'
-    key.converter: "org.apache.kafka.connect.storage.StringConverter"
-    value.converter: "io.confluent.connect.avro.AvroConverter"
-    value.converter.schema.registry.url: "http://schemaregistry.kafka.svc.cluster.local:8081"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: datagen-producer
+  template:
+    metadata:
+      labels:
+        app: datagen-producer
+    spec:
+      containers:
+      - name: users
+        image: confluentinc/cp-server:8.2.0
+        command: ["/bin/bash", "/scripts/produce.sh"]
+        env:
+        - name: TOPIC
+          value: "users"
+        volumeMounts:
+        - name: scripts
+          mountPath: /scripts
+        resources:
+          requests:
+            cpu: 50m
+            memory: 128Mi
+          limits:
+            cpu: 200m
+            memory: 256Mi
+      - name: orders
+        image: confluentinc/cp-server:8.2.0
+        command: ["/bin/bash", "/scripts/produce.sh"]
+        env:
+        - name: TOPIC
+          value: "orders"
+        volumeMounts:
+        - name: scripts
+          mountPath: /scripts
+        resources:
+          requests:
+            cpu: 50m
+            memory: 128Mi
+          limits:
+            cpu: 200m
+            memory: 256Mi
+      - name: clickstream
+        image: confluentinc/cp-server:8.2.0
+        command: ["/bin/bash", "/scripts/produce.sh"]
+        env:
+        - name: TOPIC
+          value: "clickstream"
+        volumeMounts:
+        - name: scripts
+          mountPath: /scripts
+        resources:
+          requests:
+            cpu: 50m
+            memory: 128Mi
+          limits:
+            cpu: 200m
+            memory: 256Mi
+      volumes:
+      - name: scripts
+        configMap:
+          name: datagen-producer-script
+          defaultMode: 0755

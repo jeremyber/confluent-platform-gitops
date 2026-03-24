@@ -8,54 +8,36 @@ data:
   enriched-orders.sql: |
     INSERT INTO `kafka-cat`.`main-kafka-cluster`.`enriched-orders`
     SELECT
-      o.`order_id`,
-      o.`user_id`,
-      o.`product`,
+      CAST(NULL AS BYTES),
       o.`amount`,
+      CAST(NULL AS BIGINT),
       o.`currency`,
-      o.`order_time`,
-      u.`name`,
       u.`email`,
+      CAST(NULL AS STRING),
+      u.`name`,
+      o.`order_id`,
+      o.`order_time`,
+      o.`product`,
       u.`region`,
-      c.`click_count`,
-      c.`last_page_url`
-    FROM `kafka-cat`.`main-kafka-cluster`.`orders` o
-    JOIN `kafka-cat`.`main-kafka-cluster`.`users` FOR SYSTEM_TIME AS OF o.`order_time` AS u
-      ON o.`user_id` = u.`user_id`
-    LEFT JOIN (
-      SELECT
-        `user_id`,
-        COUNT(*) AS `click_count`,
-        LAST_VALUE(`page_url`) AS `last_page_url`
-      FROM `kafka-cat`.`main-kafka-cluster`.`clickstream`
-      GROUP BY `user_id`, HOP(`event_time`, INTERVAL '1' MINUTE, INTERVAL '5' MINUTES)
-    ) c ON o.`user_id` = c.`user_id`
+      o.`user_id`
+    FROM `kafka-cat`.`main-kafka-cluster`.`orders` o,
+         `kafka-cat`.`main-kafka-cluster`.`users` u
+    WHERE o.`user_id` = u.`user_id`
+      AND u.`$rowtime` BETWEEN o.`$rowtime` - INTERVAL '1' HOUR AND o.`$rowtime`
   user-activity.sql: |
     INSERT INTO `kafka-cat`.`main-kafka-cluster`.`user-activity`
     SELECT
-      u.`user_id`,
-      u.`name`,
-      u.`email`,
-      u.`region`,
-      o.`order_count`,
-      o.`total_spend`,
+      CAST(NULL AS BYTES),
       c.`click_count`,
+      u.`email`,
+      u.`name`,
+      CAST(NULL AS BIGINT),
+      u.`region`,
+      CAST(NULL AS DOUBLE),
       c.`unique_pages`,
+      c.`user_id`,
       c.`window_start`
-    FROM `kafka-cat`.`main-kafka-cluster`.`users` FOR SYSTEM_TIME AS OF c.`window_start` AS u
-    LEFT JOIN (
-      SELECT
-        `user_id`,
-        COUNT(*) AS `order_count`,
-        SUM(`amount`) AS `total_spend`,
-        `window_start`,
-        `window_end`
-      FROM TABLE(
-        TUMBLE(TABLE `kafka-cat`.`main-kafka-cluster`.`orders`, DESCRIPTOR(`order_time`), INTERVAL '5' MINUTES)
-      )
-      GROUP BY `user_id`, `window_start`, `window_end`
-    ) o ON u.`user_id` = o.`user_id`
-    LEFT JOIN (
+    FROM (
       SELECT
         `user_id`,
         COUNT(*) AS `click_count`,
@@ -63,10 +45,13 @@ data:
         `window_start`,
         `window_end`
       FROM TABLE(
-        TUMBLE(TABLE `kafka-cat`.`main-kafka-cluster`.`clickstream`, DESCRIPTOR(`event_time`), INTERVAL '5' MINUTES)
+        TUMBLE(TABLE `kafka-cat`.`main-kafka-cluster`.`clickstream`, DESCRIPTOR(`$rowtime`), INTERVAL '5' MINUTES)
       )
       GROUP BY `user_id`, `window_start`, `window_end`
-    ) c ON u.`user_id` = c.`user_id` AND o.`window_start` = c.`window_start`
+    ) c,
+    `kafka-cat`.`main-kafka-cluster`.`users` u
+    WHERE c.`user_id` = u.`user_id`
+      AND u.`$rowtime` BETWEEN c.`window_start` - INTERVAL '1' HOUR AND c.`window_end`
 ---
 apiVersion: batch/v1
 kind: Job

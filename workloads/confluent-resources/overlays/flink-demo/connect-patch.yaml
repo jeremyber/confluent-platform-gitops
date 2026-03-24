@@ -1,20 +1,11 @@
 ---
-# Connect resource limits, JVM tuning, and connector plugins for flink-demo cluster
+# Connect resource limits for flink-demo cluster
 apiVersion: platform.confluent.io/v1beta1
 kind: Connect
 metadata:
   name: connect
   namespace: kafka
 spec:
-  build:
-    type: onDemand
-    onDemand:
-      plugins:
-        locationType: confluentHub
-        confluentHub:
-          - name: kafka-connect-datagen
-            owner: confluentinc
-            version: "0.6.6"
   podTemplate:
     resources:
       requests:
