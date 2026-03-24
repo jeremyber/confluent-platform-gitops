@@ -438,6 +438,60 @@ spec:
       name: "*"
       resourceType: Subject
 ---
+# CMF user - ResourceOwner on all subjects for Flink SQL table discovery
+apiVersion: platform.confluent.io/v1beta1
+kind: ConfluentRolebinding
+metadata:
+  name: cmf-subjects-owner
+  namespace: kafka
+spec:
+  principal:
+    type: user
+    name: cmf
+  role: ResourceOwner
+  clustersScopeByIds:
+    schemaRegistryClusterId: id_schemaregistry_kafka
+  resourcePatterns:
+    - patternType: LITERAL
+      name: "*"
+      resourceType: Subject
+---
+# Shapes group - ResourceOwner on shapes-* subjects for Flink SQL access
+apiVersion: platform.confluent.io/v1beta1
+kind: ConfluentRolebinding
+metadata:
+  name: shapes-subjects-owner
+  namespace: kafka
+spec:
+  principal:
+    type: group
+    name: shapes
+  role: ResourceOwner
+  clustersScopeByIds:
+    schemaRegistryClusterId: id_schemaregistry_kafka
+  resourcePatterns:
+    - patternType: PREFIXED
+      name: "shapes-"
+      resourceType: Subject
+---
+# Colors group - ResourceOwner on colors-* subjects for Flink SQL access
+apiVersion: platform.confluent.io/v1beta1
+kind: ConfluentRolebinding
+metadata:
+  name: colors-subjects-owner
+  namespace: kafka
+spec:
+  principal:
+    type: group
+    name: colors
+  role: ResourceOwner
+  clustersScopeByIds:
+    schemaRegistryClusterId: id_schemaregistry_kafka
+  resourcePatterns:
+    - patternType: PREFIXED
+      name: "colors-"
+      resourceType: Subject
+---
 # ==============================================================================
 # CONSUMER GROUP RBAC - Required for Flink SQL and streaming applications
 # ==============================================================================
