@@ -47,6 +47,7 @@ spec:
           expectedIssuer: http://keycloak.flink-demo-rbac.confluentdemo.local:8080/realms/confluent
           jwksEndpointUri: http://keycloak.keycloak.svc.cluster.local:8080/realms/confluent/protocol/openid-connect/certs
           subClaimName: client_id
+          groupsClaimName: groups
 
   # ==============================================================================
   # RESOURCE LIMITS - Tuned for 24GB total cluster memory
