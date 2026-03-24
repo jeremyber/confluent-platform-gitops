@@ -652,6 +652,44 @@ spec:
   kafkaRestClassRef:
     name: default
 ---
+# sa-shapes-producer service account - ResourceOwner on shapes-* subjects
+# Required for schema registration and Avro message production
+apiVersion: platform.confluent.io/v1beta1
+kind: ConfluentRolebinding
+metadata:
+  name: sa-shapes-producer-subjects-owner
+  namespace: kafka
+spec:
+  principal:
+    type: user
+    name: sa-shapes-producer
+  role: ResourceOwner
+  clustersScopeByIds:
+    schemaRegistryClusterId: id_schemaregistry_kafka
+  resourcePatterns:
+    - patternType: PREFIXED
+      name: shapes-
+      resourceType: Subject
+---
+# sa-colors-producer service account - ResourceOwner on colors-* subjects
+# Required for schema registration and Avro message production
+apiVersion: platform.confluent.io/v1beta1
+kind: ConfluentRolebinding
+metadata:
+  name: sa-colors-producer-subjects-owner
+  namespace: kafka
+spec:
+  principal:
+    type: user
+    name: sa-colors-producer
+  role: ResourceOwner
+  clustersScopeByIds:
+    schemaRegistryClusterId: id_schemaregistry_kafka
+  resourcePatterns:
+    - patternType: PREFIXED
+      name: colors-
+      resourceType: Subject
+---
 # sa-shapes-producer service account - ResourceOwner on shapes-* transactional IDs
 # Required for exactly-once semantics (optional for at-least-once)
 apiVersion: platform.confluent.io/v1beta1
