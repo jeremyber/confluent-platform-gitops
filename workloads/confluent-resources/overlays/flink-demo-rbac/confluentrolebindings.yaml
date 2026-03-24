@@ -412,22 +412,31 @@ spec:
     name: default
 ---
 # ==============================================================================
-# SCHEMA REGISTRY RBAC - Handled by Kafka RBAC + MDS integration
+# SCHEMA REGISTRY RBAC - Schema Registry operator permissions
 # ==============================================================================
-# NOTE: Subject resources cannot be scoped at the Kafka cluster level with
-# Confluent RBAC. Schema Registry subjects are accessed via MDS (Metadata Service)
-# which evaluates authorization based on Kafka topic permissions.
+# The Schema Registry operator (authenticating as 'kafka' user) needs permission
+# to manage Subject resources. This is separate from user-level subject access.
 #
-# Subject access is granted through topic-level permissions:
-#   - shapes-topics-owner grants access to shapes-* subjects
-#   - colors-topics-owner grants access to colors-* subjects
-#
-# MDS evaluates the principal's Kafka RBAC permissions when accessing subjects
-# via Schema Registry. No separate Subject rolebindings are needed.
-#
-# Removed rolebindings (were in ERROR state - invalid scope):
-#   - shapes-subjects-owner (Subject + kafkaRestClassRef scope - invalid combination)
-#   - colors-subjects-owner (Subject + kafkaRestClassRef scope - invalid combination)
+# NOTE: Subject resources must be scoped at the Schema Registry cluster level,
+# not at the Kafka cluster level (kafkaRestClassRef).
+---
+# Schema Registry operator - ResourceOwner on all subjects
+apiVersion: platform.confluent.io/v1beta1
+kind: ConfluentRolebinding
+metadata:
+  name: schemaregistry-subjects-owner
+  namespace: kafka
+spec:
+  principal:
+    type: user
+    name: kafka
+  role: ResourceOwner
+  clustersScopeByIds:
+    schemaRegistryClusterId: id_schemaregistry_kafka
+  resourcePatterns:
+    - patternType: PREFIXED
+      name: ""
+      resourceType: Subject
 ---
 # ==============================================================================
 # CONSUMER GROUP RBAC - Required for Flink SQL and streaming applications
