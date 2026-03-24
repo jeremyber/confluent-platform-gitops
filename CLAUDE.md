@@ -199,6 +199,27 @@ git worktree remove ../confluent-platform-gitops-kafka-metrics
 - All worktrees share git objects (commits, stashes)
 - Must remove worktree before deleting the branch
 
+### Sync Wave Ordering (flink-demo cluster)
+
+When manually syncing ArgoCD apps (e.g., after bootstrap or cluster recreation), sync them **in wave order** to avoid dependency failures. Apps without automated sync need manual triggers.
+
+| Wave | App | Notes |
+|------|-----|-------|
+| 0 | bootstrap | Auto-synced, creates projects + parent apps |
+| 2-85 | Infrastructure apps | cert-manager, traefik, vault, etc. — most auto-sync |
+| 100 | namespaces | Creates `kafka`, `flink`, `operator` namespaces |
+| 105 | cfk-operator | CFK CRDs + operator |
+| 106 | s3proxy | Object storage for Flink checkpoints |
+| 110 | confluent-resources | Kafka, KRaft, Schema Registry, Connect — **no auto-sync, must trigger manually** |
+| 115 | cp-flink-sql-sandbox | Topics, schemas, Flink SQL sandbox |
+| 116 | cp-flink-ecommerce-demo, flink-kubernetes-operator | Ecommerce demo + Flink operator |
+| 118 | cmf-operator | Confluent Manager for Flink |
+| 120 | flink-resources | FlinkEnvironment, catalog, database |
+
+**Key dependency chain:** namespaces (100) → cfk-operator (105) → confluent-resources (110) → flink workloads (115+) → cmf-operator (118) → flink-resources (120)
+
+Apps like `confluent-resources`, `flink-resources`, and `cp-flink-*` do NOT have automated sync — you must manually trigger sync via `kubectl patch` or the ArgoCD UI after their dependencies are healthy.
+
 ### Forking & Testing from a Fork
 
 When working from a fork (e.g., for PRs to the upstream repo), use the provided scripts to update repo URLs and target revisions across all ArgoCD Application manifests:
