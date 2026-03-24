@@ -56,6 +56,11 @@ spec:
                 secretKeyRef:
                   name: shapes-flink-oauth
                   key: client-secret
+            # Kafka topic configuration for application
+            - name: KAFKA_TOPIC
+              value: shapes-input
+            - name: KAFKA_OUTPUT_TOPIC
+              value: shapes-output
 
   # Flink configuration - Kafka OAuth Authentication
   flinkConfiguration:

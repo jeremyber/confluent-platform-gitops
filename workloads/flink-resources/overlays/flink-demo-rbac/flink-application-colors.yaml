@@ -56,6 +56,11 @@ spec:
                 secretKeyRef:
                   name: colors-flink-oauth
                   key: client-secret
+            # Kafka topic configuration for application
+            - name: KAFKA_TOPIC
+              value: colors-input
+            - name: KAFKA_OUTPUT_TOPIC
+              value: colors-output
 
   # Flink configuration - Kafka OAuth Authentication
   flinkConfiguration:
