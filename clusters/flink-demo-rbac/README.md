@@ -67,243 +67,6 @@ Workload applications are defined in `workloads/kustomization.yaml`:
 - **cmf-operator** (wave 118) - Confluent Manager for Apache Flink
 - **flink-resources** (wave 120) - Flink integration resources
 
-## Creating Cluster-Specific Overlays
-
-Most applications work with base configuration. Create overlays only when you need cluster-specific customization.
-
-### Understanding Base + Overlay Pattern
-
-- **Base values:** Shared configuration in `infrastructure/<app>/base/` or `workloads/<app>/base/`
-- **Overlay values:** Cluster-specific overrides in `infrastructure/<app>/overlays/flink-demo-rbac/` or `workloads/<app>/overlays/flink-demo-rbac/`
-- **Missing overlays:** Applications will use base values if overlay files don't exist (thanks to `ignoreMissingValueFiles: true`)
-
-### When to Create Overlays
-
-| Overlay Type | When Needed | Examples |
-|--------------|-------------|----------|
-| **Ingress Hostnames** | Required for UI access | argocd-ingress, vault-ingress, controlcenter-ingress |
-| **Environment-Specific** | KIND vs cloud differences | traefik (DaemonSet+NodePort for KIND), metrics-server (insecure TLS) |
-| **Resource Limits** | Production tuning | kube-prometheus-stack, cfk-operator |
-| **Debug Settings** | Development clusters | cfk-operator debug mode |
-
-### Required Overlays for Ingress Access
-
-**ArgoCD Ingress** (if using ArgoCD UI):
-
-```bash
-mkdir -p infrastructure/argocd-ingress/overlays/flink-demo-rbac
-cat > infrastructure/argocd-ingress/overlays/flink-demo-rbac/ingressroute-patch.yaml <<'EOF'
----
-apiVersion: traefik.io/v1alpha1
-kind: IngressRoute
-metadata:
-  name: argocd-server
-  namespace: argocd
-spec:
-  routes:
-    - match: Host(\`argocd.flink-demo-rbac.confluentdemo.local\`)
-      kind: Rule
-      priority: 10
-      services:
-        - name: argocd-server
-          port: 80
-  tls:
-    secretName: argocd-tls
-EOF
-
-cat > infrastructure/argocd-ingress/overlays/flink-demo-rbac/kustomization.yaml <<'EOF'
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-
-resources:
-  - ../../base
-
-patches:
-  - path: ingressroute-patch.yaml
-EOF
-```
-
-**Vault Ingress** (if using Vault UI):
-
-```bash
-mkdir -p infrastructure/vault-ingress/overlays/flink-demo-rbac
-cat > infrastructure/vault-ingress/overlays/flink-demo-rbac/ingressroute-patch.yaml <<'EOF'
----
-apiVersion: traefik.io/v1alpha1
-kind: IngressRoute
-metadata:
-  name: vault-server
-  namespace: vault
-spec:
-  routes:
-    - match: Host(\`vault.flink-demo-rbac.confluentdemo.local\`)
-      kind: Rule
-      priority: 10
-      services:
-        - name: vault
-          port: 8200
-  tls:
-    secretName: vault-tls
-EOF
-
-cat > infrastructure/vault-ingress/overlays/flink-demo-rbac/kustomization.yaml <<'EOF'
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-
-resources:
-  - ../../base
-
-patches:
-  - path: ingressroute-patch.yaml
-EOF
-```
-
-**Control Center Ingress** (if using Confluent Control Center UI):
-
-```bash
-mkdir -p workloads/controlcenter-ingress/overlays/flink-demo-rbac
-cat > workloads/controlcenter-ingress/overlays/flink-demo-rbac/ingressroute-patch.yaml <<'EOF'
----
-apiVersion: traefik.io/v1alpha1
-kind: IngressRoute
-metadata:
-  name: controlcenter
-  namespace: kafka
-spec:
-  routes:
-    - match: Host(\`controlcenter.flink-demo-rbac.confluentdemo.local\`)
-      kind: Rule
-      priority: 10
-      services:
-        - name: controlcenter
-          port: 9021
-  tls:
-    secretName: controlcenter-tls
-EOF
-
-cat > workloads/controlcenter-ingress/overlays/flink-demo-rbac/kustomization.yaml <<'EOF'
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-
-resources:
-  - ../../base
-
-patches:
-  - path: ingressroute-patch.yaml
-EOF
-```
-
-### Optional Environment-Specific Overlays
-
-**Traefik for KIND Clusters** (local development):
-
-```bash
-mkdir -p infrastructure/traefik/overlays/flink-demo-rbac
-cat > infrastructure/traefik/overlays/flink-demo-rbac/values.yaml <<'EOF'
-# KIND-specific configuration: DaemonSet + NodePort
-deployment:
-  kind: DaemonSet
-
-service:
-  type: NodePort
-
-# Enable insecure TLS for self-signed certificates
-additionalArguments:
-  - "--serversTransport.insecureSkipVerify=true"
-EOF
-```
-
-**Traefik for Cloud Clusters** (production):
-
-```bash
-mkdir -p infrastructure/traefik/overlays/flink-demo-rbac
-cat > infrastructure/traefik/overlays/flink-demo-rbac/values.yaml <<'EOF'
-# Cloud-specific configuration: Deployment + LoadBalancer
-deployment:
-  kind: Deployment
-  replicas: 2
-
-service:
-  type: LoadBalancer
-  annotations:
-    # Add cloud provider annotations as needed
-    # service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
-
-# Production TLS settings
-additionalArguments:
-  - "--entrypoints.websecure.http.tls=true"
-EOF
-```
-
-**Metrics Server for KIND Clusters** (insecure TLS):
-
-```bash
-mkdir -p infrastructure/metrics-server/overlays/flink-demo-rbac
-cat > infrastructure/metrics-server/overlays/flink-demo-rbac/values.yaml <<'EOF'
-# KIND-specific: Allow insecure TLS for self-signed kubelet certificates
-args:
-  - --kubelet-insecure-tls
-EOF
-```
-
-### Optional Production Tuning Overlays
-
-**Kube-Prometheus-Stack** (resource limits, retention):
-
-```bash
-mkdir -p infrastructure/kube-prometheus-stack/overlays/flink-demo-rbac
-cat > infrastructure/kube-prometheus-stack/overlays/flink-demo-rbac/values.yaml <<'EOF'
-prometheus:
-  prometheusSpec:
-    retention: 30d
-    resources:
-      requests:
-        cpu: 500m
-        memory: 2Gi
-      limits:
-        cpu: 2000m
-        memory: 8Gi
-
-grafana:
-  resources:
-    requests:
-      cpu: 100m
-      memory: 128Mi
-    limits:
-      cpu: 500m
-      memory: 512Mi
-EOF
-```
-
-**CFK Operator** (debug mode for development):
-
-```bash
-mkdir -p workloads/cfk-operator/overlays/flink-demo-rbac
-cat > workloads/cfk-operator/overlays/flink-demo-rbac/values.yaml <<'EOF'
-debug: true
-
-resources:
-  limits:
-    cpu: 500m
-    memory: 512Mi
-EOF
-```
-
-### Verifying Overlay Configuration
-
-After creating overlays, verify the configuration:
-
-```bash
-# Check that Application manifests reference overlays correctly
-grep -r "overlays/flink-demo-rbac" infrastructure/ workloads/
-
-# Validate Kustomize builds (for Kustomize-based apps)
-kustomize build infrastructure/argocd-ingress/overlays/flink-demo-rbac
-
-# Validate Helm values (for Helm-based apps)
-# Values are validated during ArgoCD sync
-```
-
 ## Access
 
 ### Required /etc/hosts Entries
@@ -312,13 +75,45 @@ Add these entries to `/etc/hosts` for local DNS resolution:
 
 ```bash
 sudo tee -a /etc/hosts << 'EOF'
+127.0.0.1  alertmanager.flink-demo-rbac.confluentdemo.local
 127.0.0.1  argocd.flink-demo-rbac.confluentdemo.local
 127.0.0.1  controlcenter.flink-demo-rbac.confluentdemo.local
 127.0.0.1  cmf.flink-demo-rbac.confluentdemo.local
-127.0.0.1  mds.flink-demo-rbac.confluentdemo.local
+127.0.0.1  grafana.flink-demo-rbac.confluentdemo.local
+127.0.0.1  headlamp.flink-demo-rbac.confluentdemo.local
+127.0.0.1  kafka.flink-demo-rbac.confluentdemo.local
+127.0.0.1  kafka-0.flink-demo-rbac.confluentdemo.local
+127.0.0.1  kafka-1.flink-demo-rbac.confluentdemo.local
+127.0.0.1  kafka-2.flink-demo-rbac.confluentdemo.local
 127.0.0.1  keycloak.flink-demo-rbac.confluentdemo.local
-EOF
+127.0.0.1  mds.flink-demo-rbac.confluentdemo.local
+127.0.0.1  prometheus.flink-demo-rbac.confluentdemo.local
+127.0.0.1  schema-registry.flink-demo-rbac.confluentdemo.local
+127.0.0.1  s3.flink-demo-rbac.confluentdemo.local
+127.0.0.1  s3-console.flink-demo-rbac.confluentdemo.local
 ```
+
+> [!WARNING]
+> If you experience ~5-second timeouts when accessing services, add IPv6 entries as well:
+> ```
+::1        alertmanager.flink-demo-rbac.confluentdemo.local
+::1        argocd.flink-demo-rbac.confluentdemo.local
+::1        controlcenter.flink-demo-rbac.confluentdemo.local
+::1        cmf.flink-demo-rbac.confluentdemo.local
+::1        grafana.flink-demo-rbac.confluentdemo.local
+::1        headlamp.flink-demo-rbac.confluentdemo.local
+::1        kafka.flink-demo-rbac.confluentdemo.local
+::1        kafka-0.flink-demo-rbac.confluentdemo.local
+::1        kafka-1.flink-demo-rbac.confluentdemo.local
+::1        kafka-2.flink-demo-rbac.confluentdemo.local
+::1        keycloak.flink-demo-rbac.confluentdemo.local
+::1        mds.flink-demo-rbac.confluentdemo.local
+::1        prometheus.flink-demo-rbac.confluentdemo.local
+::1        schema-registry.flink-demo-rbac.confluentdemo.local
+::1        s3.flink-demo-rbac.confluentdemo.local
+::1        s3-console.flink-demo-rbac.confluentdemo.local
+> ```
+
 
 ### Services via IngressRoute
 
@@ -347,25 +142,29 @@ kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.pas
 # Password: admin123
 ```
 
+**MDS (Metadata Service) for CLI Authentication:**
+```bash
+export CONFLUENT_PLATFORM_SSO=true
+
+# Login via MDS ingress
+confluent login --url http://mds.flink-demo-rbac.confluentdemo.local:80 --no-browser
+
+# Follow device grant flow prompts
+```
+
+> [!WARNING]
+> You must currently replace `http` with `https` and remove the port `:8080` from the auto-generated link when pasting into your browser.
+> This will be corrected in a future update.
+
 **Confluent Manager for Apache Flink (CMF) API:**
 ```bash
-export CONFLUENT_CMF_URL=http://cmf.flink-demo-rbac.confluentdemo.local/cmf
+export CONFLUENT_CMF_URL=http://cmf.flink-demo-rbac.confluentdemo.local
 
 # List Flink environments
 confluent flink environment list
 
 # List applications
 confluent flink application list --environment shapes-env
-```
-
-**MDS (Metadata Service) for CLI Authentication:**
-```bash
-export CONFLUENT_PLATFORM_SSO=true
-
-# Login via MDS ingress
-confluent login --url http://mds.flink-demo-rbac.confluentdemo.local --no-browser
-
-# Follow device grant flow prompts
 ```
 
 ### Port-Forwarding (Fallback/Troubleshooting)
@@ -396,22 +195,6 @@ confluent flink environment list
 ```bash
 # Kafka is also exposed via NodePort at 31000
 # Bootstrap: kafka.flink-demo-rbac.confluentdemo.local:31000
-```
-
-### Confluent CLI Environment Variables
-
-For convenience, set these environment variables:
-
-```bash
-export CONFLUENT_PLATFORM_SSO=true
-export CONFLUENT_CMF_URL=http://cmf.flink-demo-rbac.confluentdemo.local/cmf
-
-# Login once via MDS ingress
-confluent login --url http://mds.flink-demo-rbac.confluentdemo.local --no-browser
-
-# Then use Flink commands
-confluent flink environment list
-confluent flink application list --environment shapes-env
 ```
 
 ## Kafka Resource Naming Conventions
