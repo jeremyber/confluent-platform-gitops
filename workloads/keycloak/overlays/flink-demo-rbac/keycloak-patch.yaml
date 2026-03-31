@@ -11,4 +11,8 @@ spec:
       - name: keycloak
         env:
         - name: KC_HOSTNAME
-          value: keycloak.flink-demo-rbac.confluentdemo.local
+          value: https://keycloak.flink-demo-rbac.confluentdemo.local
+        - name: KC_HOSTNAME_ADMIN
+          value: https://keycloak.flink-demo-rbac.confluentdemo.local
+        - name: KC_HOSTNAME_BACKCHANNEL_DYNAMIC
+          value: "true"
