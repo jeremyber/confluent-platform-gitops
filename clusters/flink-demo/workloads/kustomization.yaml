@@ -12,5 +12,4 @@ resources:
   - namespaces.yaml
   - observability-resources.yaml
   - ollama.yaml
-  - s3proxy.yaml
   - workload-ingresses.yaml
