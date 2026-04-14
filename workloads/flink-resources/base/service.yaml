@@ -12,6 +12,5 @@ spec:
     protocol: TCP
     targetPort: 9249
   selector:
-    platform.confluent.io/origin: flink
     type: flink-native-kubernetes
   type: ClusterIP
