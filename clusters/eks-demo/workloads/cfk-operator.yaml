@@ -1,22 +1,22 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: flink-kubernetes-operator
+  name: cfk-operator
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "116"
+    argocd.argoproj.io/sync-wave: "105"
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
   project: workloads
   sources:
     - repoURL: https://packages.confluent.io/helm
-      chart: flink-kubernetes-operator
-      targetRevision: 1.140.1
+      chart: confluent-for-kubernetes
+      targetRevision: 0.1514.19
       helm:
         valueFiles:
-          - $values/workloads/flink-kubernetes-operator/base/values.yaml
-          - $values/workloads/flink-kubernetes-operator/overlays/$CLUSTER_NAME/values.yaml
+          - $values/workloads/cfk-operator/base/values.yaml
+          - $values/workloads/cfk-operator/overlays/eks-demo/values.yaml
         ignoreMissingValueFiles: true
     - repoURL: https://github.com/osowski/confluent-platform-gitops.git
       targetRevision: HEAD
@@ -24,11 +24,6 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: operator
-  ignoreDifferences:
-    - group: apiextensions.k8s.io
-      kind: CustomResourceDefinition
-      jqPathExpressions:
-        - .spec.versions[].additionalPrinterColumns[].priority
   syncPolicy:
     automated:
       prune: true

@@ -1,34 +1,34 @@
+---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: cfk-operator
+  name: reflector
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "105"
+    argocd.argoproj.io/sync-wave: "40"
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
-  project: workloads
+  project: infrastructure
   sources:
-    - repoURL: https://packages.confluent.io/helm
-      chart: confluent-for-kubernetes
-      targetRevision: 0.1514.19
+    - repoURL: https://emberstack.github.io/helm-charts
+      chart: reflector
+      targetRevision: 10.0.21  # Pin to specific chart version
       helm:
         valueFiles:
-          - $values/workloads/cfk-operator/base/values.yaml
-          - $values/workloads/cfk-operator/overlays/flink-demo/values.yaml
+          - $values/infrastructure/reflector/base/values.yaml
     - repoURL: https://github.com/osowski/confluent-platform-gitops.git
       targetRevision: HEAD
       ref: values
   destination:
     server: https://kubernetes.default.svc
-    namespace: operator
+    namespace: reflector-system
   syncPolicy:
     automated:
       prune: true
-      selfHeal: false
+      selfHeal: true
     syncOptions:
-      - ServerSideApply=true
+      - CreateNamespace=true
     retry:
       limit: 5
       backoff:
