@@ -1,14 +1,13 @@
-# Flink Resources - flink-demo-rbac Overlay
+# Flink Resources RBAC
 
-This overlay configures Flink resources for the flink-demo-rbac cluster with OAuth authentication.
+This Argo CD Application configures Flink resources for RBAC-enabled clusters with OAuth authentication.
 
 ## CMFRestClass Configuration
 
-The flink-demo-rbac cluster uses the **base CMFRestClass** (in `flink` namespace) with OAuth authentication enabled.
+The RBAC-enabled clusters uses the **base CMFRestClass** (in `flink` namespace) with OAuth authentication enabled.
 
-The CMFRestClass is patched to add OAuth authentication for **CFK operator** to CMF communication:
+The CMFRestClass is contains OAuth authentication for **CFK operator** to CMF communication:
 
-- **cmfrestclass-oauth-patch.yaml** - Adds OAuth authentication to base CMFRestClass
 - **cfk-oauth-secret.yaml** - OAuth token secret for CFK operator
 
 ### OAuth Authentication Architecture
@@ -20,10 +19,6 @@ CFK Operator → (OAuth token) → CMF REST API → (creates Flink resources)
 ```
 
 This token allows the CFK operator to manage FlinkEnvironment and FlinkApplication resources in CMF on behalf of users.
-
-**User-level authorization** is enforced separately by:
-1. **Kubernetes RBAC** (Issue #85): Controls which namespaces users can deploy CRDs to
-2. **CMF RBAC via MDS** (Issue #87): Controls which Flink resources users can access via CMF UI/API
 
 ### OAuth Client Credentials Secret
 
@@ -48,7 +43,7 @@ This uses the **OAuth 2.0 client credentials flow**, where CFK exchanges the cli
 
 ## Three-Layer Authorization Model
 
-This cluster implements a **three-layer authorization model** for complete access control:
+The RBAC-enabled clusters implement a **three-layer authorization model** for complete access control:
 
 ### Layer 1: Kubernetes RBAC (Issue #85)
 **Controls:** Kubernetes API access, namespace isolation, CRD deployment
@@ -67,9 +62,9 @@ This cluster implements a **three-layer authorization model** for complete acces
 - CFK automatically obtains and refreshes OAuth tokens from Keycloak
 - Operator can create/manage Flink resources in CMF on behalf of users
 
-**Resources:** `cmfrestclass-oauth-patch.yaml`, `cfk-oauth-secret.yaml`
+**Resources:** `cmfrestclass.yaml`, `cfk-oauth-secret.yaml`
 
-### Layer 3: CMF RBAC via MDS (Issue #87)
+### Layer 3: CMF RBAC via MDS
 **Controls:** User access to Flink resources via CMF UI/REST API
 
 When users access CMF directly:
@@ -80,7 +75,7 @@ When users access CMF directly:
 
 **ConfluentRoleBindings** (Kubernetes CRDs in `workloads/confluent-resources/overlays/flink-demo-rbac/confluentrolebindings.yaml`):
 
-**Admin user (admin@osow.ski):**
+**Admin user (admin@osow.ski / admin@dspdemos.com):**
 - SystemAdmin role on CMF cluster (full access)
 - ClusterAdmin role on CMF cluster (manage environments/apps)
 
@@ -101,10 +96,3 @@ When users access CMF directly:
 3. ❌ **CMF RBAC**: User has no DeveloperManage on colors-env → **Access Denied**
 
 This ensures users can only manage Flink resources in their assigned environments, even if they can deploy Kubernetes CRDs to their namespace.
-
-## Related Resources
-
-- CMF OAuth configuration: `workloads/cmf-operator/overlays/flink-demo-rbac/values.yaml`
-- Kubernetes RBAC: `workloads/flink-rbac/`
-- Issue #85 - Kubernetes RBAC implementation
-- Issue #87 - CMF OAuth configuration (this overlay)

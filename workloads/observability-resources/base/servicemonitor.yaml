@@ -5,6 +5,7 @@ metadata:
     release: prometheus
     monitoring: confluent
   name: flink-pods
+  namespace: flink
 spec:
   podTargetLabels:
     - app
@@ -19,6 +20,8 @@ spec:
       relabelings:
         - targetLabel: job
           replacement: flink
+  namespaceSelector:
+    any: true
   selector:
     matchLabels:
       platform.confluent.io/origin: manual
