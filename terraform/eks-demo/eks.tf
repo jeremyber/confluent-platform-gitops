@@ -37,7 +37,7 @@ module "eks" {
   enable_cluster_creator_admin_permissions = true
 
   eks_managed_node_groups = {
-    default = {
+    workers-v2 = {
       instance_types = [var.node_instance_type]
       min_size       = var.node_min_size
       max_size       = var.node_max_size

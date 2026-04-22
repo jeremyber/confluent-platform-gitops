@@ -36,29 +36,29 @@ variable "vpc_cidr" {
 variable "node_instance_type" {
   description = "EC2 instance type for EKS managed node group workers"
   type        = string
-  default     = "t3.xlarge"
+  default     = "t3.2xlarge"
 }
 
 variable "node_desired_size" {
   description = "Desired number of worker nodes"
   type        = number
-  default     = 2
+  default     = 4
 }
 
 variable "node_min_size" {
   description = "Minimum number of worker nodes"
   type        = number
-  default     = 2
+  default     = 4
 }
 
 variable "node_max_size" {
   description = "Maximum number of worker nodes"
   type        = number
-  default     = 5
+  default     = 6
 }
 
 variable "common_tags" {
-  description = "Confluent mandatory tags applied to all resources. cflt_keep_until is computed and injected automatically — do not set it here."
+  description = "Confluent mandatory tags applied to all resources"
   type        = map(string)
   default = {
     cflt_environment = "devel"
@@ -68,4 +68,9 @@ variable "common_tags" {
     cflt_managed_id  = "osowski/confluent-platform-gitops"
     cflt_protected   = "false"
   }
+}
+
+variable "cflt_keep_until" {
+  description = "Static expiry date tag applied to all resources (YYYY-MM-DD). Set to a date at least one year out. Must be set explicitly — no default — to prevent plan drift from computed timestamps."
+  type        = string
 }
