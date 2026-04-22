@@ -10,6 +10,10 @@ Provisions two Route53 hosted zones and NS delegation for the eks-demo cluster d
 | `aws_route53_zone.platform` | Hosted zone for `platform.dspdemos.com` (scoped for per-cluster IAM policies) |
 | `aws_route53_record.platform_ns` | NS delegation record in root zone pointing to platform zone name servers |
 
+## Remote State Bootstrap
+
+See [terraform/REMOTE_STATE.md](../REMOTE_STATE.md) for the one-time S3 bucket and DynamoDB table setup. The bucket and table are shared across all Terraform roots — create them once, then use the same names in the `backend "s3"` block in `main.tf`.
+
 ## Usage
 
 ```bash
