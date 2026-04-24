@@ -1,0 +1,8 @@
+---
+clusterName: mochi
+region: us-east-1
+vpcId: vpc-0ce23294729b71c54
+
+serviceAccount:
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::829250931565:role/AWSLoadBalancerController_mochi-eks-cluster

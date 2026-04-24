@@ -1,0 +1,13 @@
+# mochi cluster-specific overrides for CFK operator
+# Explicit override prevents base changes from silently expanding watch scope.
+
+# Additional pod annotations for mochi cluster identification
+podAnnotations:
+  cluster: mochi
+
+namespaceList:
+  - flink
+  - flink-shapes
+  - flink-colors
+  - kafka
+  - operator

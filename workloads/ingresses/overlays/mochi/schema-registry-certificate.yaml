@@ -1,0 +1,14 @@
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: schema-registry-tls
+  namespace: kafka
+spec:
+  secretName: schema-registry-tls
+  dnsNames:
+    - schema-registry.mochi.platform.dspdemos.com
+  issuerRef:
+    group: cert-manager.io
+    kind: ClusterIssuer
+    name: letsencrypt-prod

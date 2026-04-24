@@ -1,0 +1,19 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - cfk-operator.yaml
+  - cmf-operator.yaml
+  - confluent-resources.yaml
+  - flink-kubernetes-operator.yaml
+  - flink-resources-rbac.yaml
+  - flink-rbac.yaml
+  - cmf-operator-secrets.yaml
+  - keycloak.yaml
+  - observability-resources.yaml
+  - mds-keygen.yaml
+  - namespaces.yaml
+  - workload-ingresses.yaml
+
+# Workload applications are deployed in sync wave order (100-120)
+# Remove any applications you don't need for your cluster

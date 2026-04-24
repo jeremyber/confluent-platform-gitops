@@ -1,0 +1,77 @@
+alertmanager:
+  alertmanagerSpec:
+    storage:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: gp3
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 5Gi
+    externalUrl: https://alertmanager.mochi.platform.dspdemos.com
+
+  ingress:
+    enabled: true
+    ingressClassName: traefik
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+    hosts:
+      - alertmanager.mochi.platform.dspdemos.com
+    paths: [/]
+    pathType: Prefix
+    tls:
+      - secretName: alertmanager-tls
+        hosts:
+          - alertmanager.mochi.platform.dspdemos.com
+
+grafana:
+  # Replace with an externally-managed Secret reference before production use
+  adminPassword: "prom-operator"
+
+  persistence:
+    enabled: true
+    type: pvc
+    storageClassName: gp3
+    size: 50Gi
+
+  ingress:
+    enabled: true
+    ingressClassName: traefik
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+    hosts:
+      - grafana.mochi.platform.dspdemos.com
+    path: /
+    pathType: Prefix
+    tls:
+      - secretName: grafana-tls
+        hosts:
+          - grafana.mochi.platform.dspdemos.com
+
+prometheus:
+  prometheusSpec:
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: gp3
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 100Gi
+    externalUrl: https://prometheus.mochi.platform.dspdemos.com
+    retention: 15d
+    retentionSize: "9GB"
+
+  ingress:
+    enabled: true
+    ingressClassName: traefik
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+    hosts:
+      - prometheus.mochi.platform.dspdemos.com
+    paths: [/]
+    pathType: Prefix
+    tls:
+      - secretName: prometheus-tls
+        hosts:
+          - prometheus.mochi.platform.dspdemos.com

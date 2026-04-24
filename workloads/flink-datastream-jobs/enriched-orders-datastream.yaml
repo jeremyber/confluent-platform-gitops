@@ -1,0 +1,35 @@
+apiVersion: flink.apache.org/v1beta1
+kind: FlinkDeployment
+metadata:
+  name: enriched-orders-datastream
+  namespace: flink
+spec:
+  image: enriched-orders-datastream:latest
+  imagePullPolicy: Never
+  flinkVersion: v1_19
+  flinkConfiguration:
+    taskmanager.numberOfTaskSlots: "4"
+    state.checkpoints.dir: s3://warehouse/checkpoints/
+    state.savepoints.dir: s3://warehouse/savepoints/
+    high-availability.type: kubernetes
+    high-availability.storageDir: s3://warehouse/
+    s3.endpoint: http://s3proxy.flink.svc.cluster.local:8000
+    s3.path.style.access: "true"
+    s3.access-key: admin
+    s3.secret-key: password
+    s3.connection.ssl.enabled: "false"
+    execution.checkpointing.interval: "10s"
+  serviceAccount: flink
+  jobManager:
+    resource:
+      memory: "1024m"
+      cpu: 1
+  taskManager:
+    resource:
+      memory: "1024m"
+      cpu: 1
+  job:
+    jarURI: local:///opt/flink/usrlib/enriched-orders-datastream-1.0-SNAPSHOT.jar
+    parallelism: 2
+    upgradeMode: stateless
+    state: running
