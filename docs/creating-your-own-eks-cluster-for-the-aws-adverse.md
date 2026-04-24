@@ -125,6 +125,9 @@ If `eks-demo` (at `10.0.0.0/16`) is the only existing cluster, `10.1.0.0/16` is 
 
 ### 5. Initialize and Apply Terraform
 
+> [!NOTE]
+> The EKS API endpoint is configured as **private-only**. You will not be able to reach it directly from your local machine once `apply` completes. All `kubectl` access requires the SSM tunnel covered in Part 2.
+
 From inside the new cluster directory:
 
 ```bash
@@ -137,9 +140,6 @@ terraform apply
 `terraform init` connects to the S3 backend and downloads the `eks-cluster` module. `terraform plan` shows every resource that will be created — a new VPC, subnets across three availability zones, a NAT gateway, VPC interface endpoints for SSM and ECR, an EKS control plane, a managed node group, a bastion host, and four IRSA IAM roles. `terraform apply` provisions all of it.
 
 The full apply takes approximately 15–20 minutes, the majority of which is waiting for the EKS control plane to become available. This is normal.
-
-> [!NOTE]
-> The EKS API endpoint is configured as **private-only**. You will not be able to reach it directly from your local machine once `apply` completes. All `kubectl` access requires the SSM tunnel covered in Part 2.
 
 ### 6. Capture the Terraform Outputs
 
@@ -187,6 +187,9 @@ Leave this running. It forwards port 1080 on your local machine to the SOCKS5 pr
 
 ### 8. Configure kubectl and Set the Proxy
 
+> [!WARNING]
+> `HTTPS_PROXY=socks5://localhost:1080` must be exported in every terminal session where you run `kubectl` against this cluster. The EKS API endpoint is private and unreachable without it. If you open a new terminal and `kubectl` commands hang or time out, this is the first thing to check.
+
 In your second terminal, from `terraform/clusters/new-eks-cluster`:
 
 ```bash
@@ -204,9 +207,6 @@ kubectl get nodes
 ```
 
 You should see four nodes in `Ready` state. If `kubectl` times out, the tunnel from Step 7 is either not running or has dropped — check the first terminal.
-
-> [!WARNING]
-> `HTTPS_PROXY=socks5://localhost:1080` must be exported in every terminal session where you run `kubectl` against this cluster. The EKS API endpoint is private and unreachable without it. If you open a new terminal and `kubectl` commands hang or time out, this is the first thing to check.
 
 ---
 
@@ -289,6 +289,9 @@ With the ARNs, VPC ID, and hosted zone ID updated, the infrastructure-critical v
 
 ### 13. Commit and Push
 
+> [!NOTE]
+> This repository uses Airlock. Use `git push-external` instead of `git push` when pushing to the remote — standard `git push` will be blocked.
+
 Stage and commit the new cluster configuration from the repository root:
 
 ```bash
@@ -298,9 +301,6 @@ git add workloads/
 git commit -m "feat: add new-eks-cluster GitOps configuration"
 git push-external
 ```
-
-> [!NOTE]
-> This repository uses Airlock. Use `git push-external` instead of `git push` when pushing to the remote — standard `git push` will be blocked.
 
 ---
 
