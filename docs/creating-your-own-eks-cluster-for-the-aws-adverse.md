@@ -397,6 +397,35 @@ The `confluent-resources` and `flink-resources-rbac` Applications are intentiona
 
 ---
 
+## Part 5: Tear Down the Cluster
+
+### 20. Destroy the AWS Infrastructure
+
+When you are done with the cluster, `terraform destroy` will remove everything Terraform provisioned — the EKS control plane, node group, VPC, bastion host, NAT gateway, IRSA roles, and all associated resources.
+
+Before running the destroy, close the SSM tunnel terminal from Step 7. This is important enough to explain in full.
+
+>Terraform destroys resources in reverse dependency order. The bastion host is not the last thing to go, but it is not the first either. At some point mid-destroy, the EC2 instance backing the bastion gets terminated. The moment that happens, the SSM Session Manager plugin detects that the target is gone and exits the tunnel process with an error along the lines of:
+>
+>```
+>An error occurred (TargetNotConnected) when calling the StartSession operation
+>```
+>
+>If the tunnel terminal is in the background or you are not watching it, this looks indistinguishable from a Terraform failure. It is not — `terraform destroy` communicates with the AWS API directly, which is a public endpoint that does not route through your SOCKS5 proxy. The destroy will complete successfully regardless of what happens to the tunnel.
+>
+>The second trap is if you have `HTTPS_PROXY=socks5://localhost:1080` still set in a terminal and you try to check on the cluster's state after the bastion disappears but before the EKS control plane is removed. Every `kubectl` command will hang until it times out, because the proxy it is pointing at no longer exists. This is not a sign that anything is wrong with the destroy. Closing the tunnel terminal before starting `terraform destroy` eliminates both the alarming error message and the temptation to run `kubectl` commands that will never complete.
+
+With the tunnel closed and **triple-confirmation** that you are attempting to destroy YOUR cluster:
+
+```bash
+cd terraform/clusters/new-eks-cluster
+terraform destroy
+```
+
+Terraform handles the resource dependency sequencing automatically. The full destroy takes approximately 15–20 minutes, mirroring the apply duration. When it completes, all AWS resources for the cluster are gone and the state file in S3 will reflect an empty configuration.
+
+---
+
 ## Access Your Services
 
 All services are exposed through Traefik at subdomains of `new-eks-cluster.platform.dspdemos.com`. ExternalDNS automatically registers DNS records in Route53 as each service's IngressRoute and Certificate become available — no `/etc/hosts` configuration is required.
@@ -411,12 +440,3 @@ All services are exposed through Traefik at subdomains of `new-eks-cluster.platf
 | MinIO Console | `https://s3-console.new-eks-cluster.platform.dspdemos.com` |
 | Keycloak | `https://keycloak.new-eks-cluster.platform.dspdemos.com` |
 | CMF | `https://cmf.new-eks-cluster.platform.dspdemos.com` |
-
----
-
-> [!TIP]
-> **A note on teardown:** When you are done with the cluster, `terraform destroy` from `terraform/clusters/new-eks-cluster` will remove all provisioned AWS resources. Close the SSM tunnel before running it.
->
-> **IF YOU DO NOT:** Terraform destroys resources in reverse dependency order — the bastion host is not the last thing to go, but it is not the first either. At some point mid-destroy, the EC2 instance backing the bastion gets terminated. The moment that happens, the SSM Session Manager plugin detects that the target is gone and exits the tunnel process with an error message along the lines of `An error occurred (TargetNotConnected) when calling the StartSession operation`. If the tunnel terminal is in the background or you are not watching it, this looks indistinguishable from a Terraform failure. It is not — `terraform destroy` communicates with the AWS API directly, which is a public endpoint that does not route through your SOCKS5 proxy. The destroy will complete successfully regardless of what happens to the tunnel.
->
-> The confusion comes in if you had `HTTPS_PROXY=socks5://localhost:1080` set in your kubectl terminal and you try to check on the cluster's state after the bastion disappears but before the EKS control plane is removed. Every `kubectl` command will hang until it times out, because the proxy it is pointing at is gone. This is not a sign that anything is wrong with the destroy — it is just the cluster being torn down. Closing the tunnel terminal before starting `terraform destroy` eliminates both the alarming error message and the temptation to run `kubectl` commands that will never complete. Terraform handles the resource dependency sequencing correctly on its own.
